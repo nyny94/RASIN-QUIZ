@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RASIN — Quiz Culture Afro-Caribéenne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --indigo-deep:#211B4E;
+    --indigo-deeper:#171335;
+    --sun-gold:#F5B400;
+    --hibiscus:#E8471E;
+    --emerald:#0E9C6E;
+    --teal:#1FAABF;
+    --magenta:#C247A0;
+    --cobalt:#5673F0;
+    --coral:#FF6F91;
+    --sable:#FFF7EA;
+    --ink:#1F1B3D;
+    --ink-soft:#4A4570;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 8%, rgba(255,255,255,0.28), transparent 35%),
+      radial-gradient(circle at 88% 18%, rgba(255,255,255,0.16), transparent 40%),
+      linear-gradient(160deg, #FF3D78 0%, #FF6A3D 45%, #FFC93D 100%);
+    background-size:200% 200%;
+    animation:gradientShift 16s ease infinite;
+    color:var(--sable);
+    font-family:'Work Sans', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+    position:relative;
+    overflow-x:hidden;
+  }
+  @keyframes gradientShift{
+    0%,100%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+  }
+  @media (prefers-reduced-motion: reduce){ body{animation:none;} }
+
+  .bg-shapes{position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;}
+  .shape{position:absolute; border-radius:50%; opacity:0.20; filter:blur(1px);}
+  .s1{width:180px;height:180px; background:var(--hibiscus); top:-50px; left:-50px; animation:float1 9s ease-in-out infinite;}
+  .s2{width:120px;height:120px; background:var(--teal); bottom:8%; right:-30px; animation:float2 11s ease-in-out infinite;}
+  .s3{width:90px;height:90px; background:var(--sun-gold); top:38%; left:-25px; animation:float1 7s ease-in-out infinite;}
+  .s4{width:150px;height:150px; background:var(--magenta); bottom:-40px; right:18%; animation:float2 10s ease-in-out infinite;}
+  .s5{width:70px;height:70px; background:var(--coral); top:8%; right:8%; animation:float2 8s ease-in-out infinite;}
+  @keyframes float1{0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(26px) rotate(8deg)}}
+  @keyframes float2{0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-22px) rotate(-6deg)}}
+  @media (prefers-reduced-motion: reduce){ .shape{animation:none;} }
+
+  .sparkle{
+    position:absolute;
+    font-size:1.3rem;
+    animation:twinkle 2.6s ease-in-out infinite;
+    filter:drop-shadow(0 0 5px rgba(255,255,255,0.9));
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:0.25; transform:scale(0.75);}
+    50%{opacity:1; transform:scale(1.2);}
+  }
+  @media (prefers-reduced-motion: reduce){ .sparkle{animation:none; opacity:0.7;} }
+
+  .garland{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin:0 auto 20px;
+    flex-wrap:wrap;
+    max-width:320px;
+  }
+  .garland span{
+    width:10px;height:10px;
+    border-radius:50%;
+    display:inline-block;
+    animation:bulbGlow 1.8s ease-in-out infinite;
+  }
+  .garland span:nth-child(7n+1){background:var(--sun-gold); box-shadow:0 0 10px var(--sun-gold);}
+  .garland span:nth-child(7n+2){background:var(--hibiscus); box-shadow:0 0 10px var(--hibiscus);}
+  .garland span:nth-child(7n+3){background:var(--emerald); box-shadow:0 0 10px var(--emerald);}
+  .garland span:nth-child(7n+4){background:var(--teal); box-shadow:0 0 10px var(--teal);}
+  .garland span:nth-child(7n+5){background:var(--magenta); box-shadow:0 0 10px var(--magenta);}
+  .garland span:nth-child(7n+6){background:var(--cobalt); box-shadow:0 0 10px var(--cobalt);}
+  .garland span:nth-child(7n+7){background:var(--coral); box-shadow:0 0 10px var(--coral);}
+  .garland span:nth-child(odd){animation-delay:0.35s;}
+  @keyframes bulbGlow{0%,100%{opacity:0.55; transform:scale(0.85);} 50%{opacity:1; transform:scale(1.15);}}
+  @media (prefers-reduced-motion: reduce){ .garland span{animation:none; opacity:0.9;} }
+
+  .app{
+    width:100%;
+    max-width:640px;
+    position:relative;
+    z-index:1;
+  }
+
+  .stripes{
+    display:flex;
+    height:9px;
+    border-radius:8px;
+    overflow:hidden;
+    margin:0 auto 18px;
+    max-width:260px;
+  }
+  .stripes span{flex:1;}
+  .stripes span:nth-child(1){background:var(--sun-gold);}
+  .stripes span:nth-child(2){background:var(--hibiscus);}
+  .stripes span:nth-child(3){background:var(--emerald);}
+  .stripes span:nth-child(4){background:var(--teal);}
+  .stripes span:nth-child(5){background:var(--magenta);}
+  .stripes span:nth-child(6){background:var(--cobalt);}
+  .stripes span:nth-child(7){background:var(--coral);}
+
+  header.hero{
+    text-align:center;
+    margin-bottom:6px;
+  }
+  h1.title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(2.6rem, 9vw, 3.6rem);
+    letter-spacing:0.5px;
+    margin:0;
+    color:#FFFFFF;
+    text-shadow:0 4px 14px rgba(0,0,0,0.28);
+  }
+  p.tagline{
+    font-size:1rem;
+    color:#FFFFFF;
+    margin:8px 0 0;
+    font-weight:700;
+    text-shadow:0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn 0.35s ease;}
+  @media (prefers-reduced-motion: reduce){
+    .screen.active{animation:none;}
+  }
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  .mode-toggle{
+    display:flex;
+    gap:4px;
+    background:rgba(255,255,255,0.2);
+    padding:6px;
+    border-radius:999px;
+    max-width:420px;
+    width:100%;
+    margin:20px auto 4px;
+    box-sizing:border-box;
+  }
+  .mode-btn{
+    flex:1 1 0;
+    min-width:0;
+    border:none;
+    background:transparent;
+    color:#FFFFFF;
+    text-shadow:0 1px 4px rgba(0,0,0,0.25);
+    font-family:'Work Sans', sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    padding:10px 2px;
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  @media (max-width:360px){
+    .mode-btn{font-size:0.64rem; padding:9px 1px;}
+  }
+  .mode-btn.active{background:var(--sun-gold); color:var(--ink); transform:scale(1.03);}
+  .mode-btn:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+
+  .group-status{
+    text-align:center;
+    color:#FFFFFF;
+    text-shadow:0 1px 4px rgba(0,0,0,0.25);
+    font-weight:700;
+    font-size:0.85rem;
+    margin:12px 0 0;
+  }
+
+  .section-label{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.2rem;
+    color:#FFFFFF;
+    text-shadow:0 2px 8px rgba(0,0,0,0.3);
+    margin:28px 0 14px;
+    text-align:center;
+  }
+  .cat-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+  }
+  @media (min-width:480px){
+    .cat-grid{grid-template-columns:repeat(3, 1fr);}
+  }
+  .cat-card{
+    background:var(--sable);
+    color:var(--ink);
+    border:none;
+    border-radius:22px;
+    padding:20px 10px 16px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:700;
+    font-size:0.92rem;
+    text-align:center;
+    transition:transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s ease;
+  }
+  .cat-card:hover{transform:translateY(-4px) rotate(-1deg) scale(1.03);}
+  .cat-card:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+  .cat-card .icon{
+    width:46px; height:46px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem;
+    color:var(--sable);
+  }
+  .cat-card.mix{
+    background:linear-gradient(135deg, var(--sun-gold), var(--hibiscus) 30%, var(--emerald) 55%, var(--teal) 75%, var(--cobalt));
+    color:var(--ink);
+  }
+  .cat-card.mix .icon{background:rgba(255,255,255,0.4); color:var(--ink);}
+
+  .cat-chosen{
+    text-align:center;
+    margin-top:6px;
+  }
+  .cat-chosen .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--sable);
+    color:var(--ink);
+    padding:9px 18px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:0.9rem;
+  }
+  .level-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:22px;
+  }
+  .level-btn{
+    border:none;
+    border-radius:18px;
+    padding:19px 20px;
+    text-align:left;
+    cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    transition:transform 0.15s cubic-bezier(.34,1.56,.64,1);
+  }
+  .level-btn:hover{transform:translateX(5px) scale(1.01);}
+  .level-btn:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+  .level-btn .name{font-weight:800; font-size:1.08rem;}
+  .level-btn .sub{font-size:0.8rem; opacity:0.75; font-weight:600;}
+  .level-btn.debutant{background:var(--emerald); color:var(--sable);}
+  .level-btn.confirme{background:var(--sun-gold); color:var(--ink);}
+  .level-btn.connaisseur{background:var(--hibiscus); color:var(--sable);}
+
+  .manche-btn{
+    border:none;
+    border-radius:18px;
+    padding:19px 20px;
+    text-align:left;
+    cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    transition:transform 0.15s cubic-bezier(.34,1.56,.64,1);
+  }
+  .manche-btn:hover{transform:translateX(5px) scale(1.01);}
+  .manche-btn .name{font-weight:800; font-size:1.05rem;}
+  .manche-btn.m1{background:var(--emerald); color:var(--sable);}
+  .manche-btn.m2{background:var(--sun-gold); color:var(--ink);}
+  .manche-btn.m3{background:var(--hibiscus); color:var(--sable);}
+  .manche-btn.chosen{outline:4px solid #FFFFFF; outline-offset:2px; transform:scale(1.02);}
+
+  .back-link{
+    background:none; border:none; color:#FFFFFF; text-shadow:0 1px 4px rgba(0,0,0,0.25); font-family:'Work Sans',sans-serif;
+    font-weight:700; font-size:0.85rem; cursor:pointer; padding:8px 0; margin-top:18px;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-link:hover{color:var(--sable);}
+
+  .player-inputs{margin-top:14px;}
+  .player-row{display:flex; gap:8px; margin-bottom:10px;}
+  .player-name-input{
+    flex:1;
+    border-radius:12px;
+    border:none;
+    padding:12px 14px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    background:var(--sable);
+    color:var(--ink);
+  }
+  .remove-player-btn{
+    background:var(--hibiscus);
+    color:#FFFFFF;
+    border:none;
+    border-radius:12px;
+    width:44px;
+    font-weight:800;
+    font-size:1rem;
+    cursor:pointer;
+  }
+
+  .qr-wrap{
+    text-align:center;
+    margin-top:10px;
+  }
+  .qr-box{
+    background:var(--sable);
+    border-radius:24px;
+    padding:24px;
+    display:inline-flex;
+    margin:18px auto;
+  }
+  #qrcode{line-height:0;}
+  .qr-hint{color:#FFFFFF; text-shadow:0 1px 4px rgba(0,0,0,0.25); font-size:0.9rem; font-weight:700; max-width:340px; margin:0 auto 18px;}
+  .link-row{
+    display:flex;
+    gap:8px;
+    max-width:400px;
+    margin:0 auto 18px;
+  }
+  .link-row input{
+    flex:1;
+    border-radius:12px;
+    border:none;
+    padding:12px 14px;
+    font-family:'Work Sans', sans-serif;
+    font-size:0.8rem;
+    background:rgba(255,255,255,0.12);
+    color:var(--sable);
+  }
+  .link-row button{
+    background:var(--teal);
+    color:var(--sable);
+    border:none;
+    border-radius:12px;
+    padding:0 16px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.8rem;
+  }
+
+  .quiz-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+    font-size:0.85rem;
+    font-weight:700;
+    color:#FFFFFF;
+    text-shadow:0 1px 4px rgba(0,0,0,0.25);
+  }
+
+  .timer-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .timer-track{
+    flex:1;
+    height:11px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.3);
+    overflow:hidden;
+  }
+  .timer-fill{
+    height:100%;
+    width:100%;
+    border-radius:6px;
+    background:var(--emerald);
+    transition:width 1s linear, background 0.3s ease;
+  }
+  .timer-fill.warning{background:var(--sun-gold);}
+  .timer-fill.danger{background:var(--hibiscus); animation:pulseDanger 0.6s ease-in-out infinite;}
+  @keyframes pulseDanger{0%,100%{opacity:1;} 50%{opacity:0.5;}}
+  .timer-text{
+    font-weight:800;
+    font-size:0.85rem;
+    color:#FFFFFF;
+    text-shadow:0 2px 6px rgba(0,0,0,0.25);
+    min-width:34px;
+    text-align:right;
+  }
+  @media (prefers-reduced-motion: reduce){ .timer-fill.danger{animation:none;} }
+
+  .beads{
+    display:flex;
+    gap:5px;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+  }
+  .bead{
+    flex:1;
+    min-width:10px;
+    height:9px;
+    border-radius:5px;
+    background:rgba(255,255,255,0.15);
+    transition:background 0.25s ease;
+  }
+  .bead.filled{background:var(--cat-color, var(--sun-gold));}
+
+  .question-card{
+    background:var(--sable);
+    color:var(--ink);
+    border-radius:24px;
+    padding:28px 24px;
+    margin-bottom:20px;
+  }
+  .question-card .eyebrow{
+    font-size:0.75rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--cat-color, var(--hibiscus));
+    margin-bottom:8px;
+  }
+  .question-card h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.4rem;
+    line-height:1.35;
+    margin:0;
+  }
+
+  .answers{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .answer-btn{
+    background:var(--sable);
+    color:var(--ink);
+    border:2px solid transparent;
+    border-radius:16px;
+    padding:16px 18px;
+    text-align:left;
+    font-family:'Work Sans', sans-serif;
+    font-size:0.98rem;
+    font-weight:700;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    transition:background 0.2s ease, transform 0.15s cubic-bezier(.34,1.56,.64,1), border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .answer-btn:hover:not(:disabled){transform:translateY(-2px) scale(1.01);}
+  .answer-btn:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+  .answer-btn:disabled{cursor:default;}
+  .ans-badge{font-size:1.2rem; opacity:0; transform:scale(0.5); transition:all 0.25s cubic-bezier(.34,1.56,.64,1); flex-shrink:0;}
+  .answer-btn.correct{background:var(--emerald); color:var(--sable); border-color:var(--emerald); box-shadow:0 0 0 3px rgba(14,156,110,0.35), 0 8px 18px rgba(14,156,110,0.35); transform:scale(1.02);}
+  .answer-btn.correct .ans-badge{opacity:1; transform:scale(1);}
+  .answer-btn.correct .ans-badge::before{content:"✓";}
+  .answer-btn.wrong{background:var(--hibiscus); color:var(--sable); border-color:var(--hibiscus); box-shadow:0 0 0 3px rgba(232,71,30,0.3);}
+  .answer-btn.wrong .ans-badge{opacity:1; transform:scale(1);}
+  .answer-btn.wrong .ans-badge::before{content:"✗";}
+  .answer-btn.dimmed{opacity:0.4;}
+
+  .feedback{
+    margin-top:16px;
+    font-size:0.95rem;
+    font-weight:800;
+    min-height:24px;
+    color:#FFFFFF;
+    text-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .next-btn{
+    margin-top:18px;
+    width:100%;
+    background:var(--cobalt);
+    color:var(--sable);
+    border:none;
+    border-radius:16px;
+    padding:16px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:800;
+    font-size:0.95rem;
+    cursor:pointer;
+    display:none;
+  }
+  .next-btn.show{display:block;}
+  .next-btn:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+
+  .group-reveal-wrap{display:none;}
+  .group-reveal-wrap.show{display:block;}
+  .players-wrap{display:none; margin-top:14px;}
+  .players-wrap.show{display:block;}
+  .player-chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .player-chip{
+    background:var(--sable);
+    color:var(--ink);
+    border:3px solid transparent;
+    border-radius:999px;
+    padding:10px 16px;
+    font-weight:800;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:transform 0.15s cubic-bezier(.34,1.56,.64,1), background 0.2s ease;
+  }
+  .player-chip.selected{border-color:var(--indigo-deeper); background:var(--emerald); color:var(--sable); transform:scale(1.05);}
+  .mini-leaderboard{display:none; margin-top:16px; background:rgba(255,255,255,0.18); border-radius:16px; padding:14px;}
+  .mini-leaderboard.show{display:block;}
+  .mini-leaderboard .row{display:flex; justify-content:space-between; padding:6px 4px; font-weight:700; color:#FFFFFF;}
+  .mini-leaderboard .rank{margin-right:8px;}
+
+  .result{
+    text-align:center;
+    padding-top:10px;
+  }
+  .medal{
+    width:160px; height:160px;
+    margin:0 auto 22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:conic-gradient(var(--sun-gold), var(--hibiscus), var(--emerald), var(--teal), var(--magenta), var(--cobalt), var(--coral), var(--sun-gold));
+    padding:7px;
+  }
+  .medal-inner{
+    width:100%; height:100%;
+    border-radius:50%;
+    background:var(--indigo-deeper);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .medal-inner .score-num{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:2.6rem;
+    color:var(--sable);
+  }
+  .medal-inner .score-total{
+    font-size:0.85rem;
+    color:#E6D9FF;
+    font-weight:700;
+  }
+  .result h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    color:var(--sun-gold);
+    margin:0 0 10px;
+  }
+  .result p.msg{
+    color:#FFFFFF;
+    text-shadow:0 1px 4px rgba(0,0,0,0.25);
+    font-size:0.95rem;
+    max-width:400px;
+    margin:0 auto 28px;
+    line-height:1.5;
+  }
+  .result-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:320px;
+    margin:0 auto;
+  }
+  .btn-primary, .btn-secondary{
+    border:none;
+    border-radius:16px;
+    padding:15px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:800;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition:transform 0.15s cubic-bezier(.34,1.56,.64,1);
+  }
+  .btn-primary:hover, .btn-secondary:hover{transform:scale(1.02);}
+  .btn-primary{background:var(--sun-gold); color:var(--ink);}
+  .btn-secondary{background:transparent; color:var(--sable); border:2px solid rgba(255,255,255,0.28);}
+  .btn-primary:focus-visible, .btn-secondary:focus-visible{outline:3px solid var(--sun-gold); outline-offset:2px;}
+
+  .manche-ranking{
+    background:var(--sable);
+    color:var(--ink);
+    border-radius:20px;
+    padding:10px 20px;
+    margin:18px 0;
+    text-align:left;
+  }
+  .rank-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    font-weight:800;
+    border-bottom:1px solid rgba(0,0,0,0.08);
+  }
+  .rank-row:last-child{border-bottom:none;}
+  .rank-medal{font-size:1.2rem; width:28px; flex-shrink:0;}
+  .rank-name{flex:1;}
+  .rank-score{color:var(--ink-soft);}
+
+  .confetti-piece{
+    position:fixed;
+    top:-12px;
+    width:8px;height:14px;
+    border-radius:3px;
+    z-index:999;
+    animation-name:confettiFall;
+    animation-timing-function:ease-in;
+    animation-fill-mode:forwards;
+    pointer-events:none;
+  }
+  @keyframes confettiFall{
+    to{ transform:translateY(100vh) rotate(360deg); opacity:0.25; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-shapes" aria-hidden="true">
+  <span class="shape s1"></span>
+  <span class="shape s2"></span>
+  <span class="shape s3"></span>
+  <span class="shape s4"></span>
+  <span class="shape s5"></span>
+  <span class="sparkle" style="top:6%; left:12%; animation-delay:0s;">✨</span>
+  <span class="sparkle" style="top:14%; left:78%; animation-delay:0.6s;">✨</span>
+  <span class="sparkle" style="top:34%; left:88%; animation-delay:1.2s;">✨</span>
+  <span class="sparkle" style="top:52%; left:6%; animation-delay:0.3s;">✨</span>
+  <span class="sparkle" style="top:70%; left:92%; animation-delay:1.6s;">✨</span>
+  <span class="sparkle" style="top:82%; left:20%; animation-delay:0.9s;">✨</span>
+  <span class="sparkle" style="top:90%; left:60%; animation-delay:1.3s;">✨</span>
+  <span class="sparkle" style="top:22%; left:45%; animation-delay:0.4s;">✨</span>
+</div>
+
+<div class="app">
+
+  <div class="stripes"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="garland" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <header class="hero">
+    <h1 class="title">
+      <span style="color:var(--sun-gold)">R</span><span style="color:var(--hibiscus)">A</span><span style="color:var(--emerald)">S</span><span style="color:var(--teal)">I</span><span style="color:var(--coral)">N</span> 🎉
+    </h1>
+    <p class="tagline">Le quiz qui met de la couleur dans tes connaissances</p>
+    <button class="back-link" id="music-toggle-btn" style="margin:10px auto 0; display:block;">🔇 Musique</button>
+  </header>
+
+  <section id="screen-categories" class="screen active">
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="solo">🎮 Solo</button>
+      <button class="mode-btn" data-mode="group">👥 Groupe</button>
+      <button class="mode-btn" data-mode="host">📱 QR</button>
+    </div>
+    <p class="group-status" id="group-status"></p>
+    <p class="section-label">🎯 Choisis ta catégorie</p>
+    <div class="cat-grid" id="cat-grid"></div>
+  </section>
+
+  <section id="screen-group-setup" class="screen">
+    <div class="qr-wrap" id="lobby-online-block">
+      <p class="section-label">👥 Salle de jeu</p>
+      <p class="qr-hint">📱 Fais scanner ce QR par tes ami·es : leur pseudo apparaît ici dès qu'ils rejoignent !</p>
+      <div class="qr-box"><div id="lobby-qrcode"></div></div>
+      <div class="link-row">
+        <input type="text" id="lobby-link" readonly>
+        <button id="lobby-copy-btn">Copier</button>
+      </div>
+      <p class="section-label">Joueurs connectés (<span id="lobby-count">0</span>)</p>
+      <div class="player-chips" id="lobby-player-list" style="justify-content:center;"></div>
+    </div>
+    <div id="lobby-local-block">
+      <p class="section-label">👥 Qui joue ? <span style="font-size:0.7rem; opacity:0.85; display:block; font-weight:600;">(mode local, même écran — pas besoin de configuration)</span></p>
+      <div class="player-inputs" id="player-inputs"></div>
+      <button class="back-link" id="add-player-btn">+ Ajouter un joueur</button>
+    </div>
+    <p class="section-label">Format de la partie</p>
+    <div class="level-list">
+      <button class="manche-btn m1 chosen" data-manches="1"><span class="name">1 manche</span><span>🎲</span></button>
+      <button class="manche-btn m2" data-manches="3"><span class="name">Meilleur des 3 manches</span><span>🎯</span></button>
+      <button class="manche-btn m3" data-manches="5"><span class="name">Meilleur des 5 manches</span><span>🏆</span></button>
+    </div>
+    <button class="btn-primary" id="group-start-btn" style="margin-top:20px;width:100%;">Commencer la partie</button>
+    <button class="back-link" id="group-back-btn">← Retour</button>
+  </section>
+
+  <section id="screen-join" class="screen">
+    <div class="qr-wrap">
+      <p class="section-label">🎉 Rejoindre la partie</p>
+      <p class="qr-hint">Entre ton pseudo pour apparaître dans la salle de jeu.</p>
+      <div class="link-row" style="max-width:320px;">
+        <input type="text" id="join-name-input" placeholder="Ton pseudo" maxlength="16" style="color:var(--ink); background:var(--sable);">
+      </div>
+      <button class="btn-primary" id="join-submit-btn" style="max-width:320px; width:100%; margin:0 auto;">Rejoindre</button>
+    </div>
+  </section>
+
+  <section id="screen-join-waiting" class="screen">
+    <div class="qr-wrap">
+      <p class="section-label">✅ Tu es dans la partie !</p>
+      <p class="qr-hint" id="join-waiting-hint">En attente du lancement par l'hôte... Regardez l'écran principal 👀</p>
+    </div>
+    <div class="question-card" id="mirror-question-card" style="display:none;">
+      <div class="eyebrow" id="mirror-eyebrow">Catégorie</div>
+      <h2 id="mirror-qtext">Question ?</h2>
+    </div>
+    <div class="answers" id="mirror-answers"></div>
+    <div class="feedback" id="mirror-feedback"></div>
+    <p class="section-label" style="margin-top:24px;">Joueurs dans la salle</p>
+    <div class="player-chips" id="join-player-list" style="justify-content:center;"></div>
+  </section>
+
+  <section id="screen-levels" class="screen">
+    <div class="cat-chosen"><span class="chip" id="chip-category">—</span></div>
+    <p class="section-label">Choisis ton niveau</p>
+    <div class="level-list">
+      <button class="level-btn debutant" data-level="debutant">
+        <span><span class="name">Débutant</span><br><span class="sub">Pour se réchauffer</span></span>
+        <span>🌱</span>
+      </button>
+      <button class="level-btn confirme" data-level="confirme">
+        <span><span class="name">Confirmé</span><br><span class="sub">Tu connais déjà bien</span></span>
+        <span>🔥</span>
+      </button>
+      <button class="level-btn connaisseur" data-level="connaisseur">
+        <span><span class="name">Connaisseur</span><br><span class="sub">Le vrai niveau expert</span></span>
+        <span>👑</span>
+      </button>
+    </div>
+    <button class="back-link" id="back-to-categories">← Changer de catégorie</button>
+  </section>
+
+  <section id="screen-qr" class="screen">
+    <div class="qr-wrap">
+      <div class="cat-chosen"><span class="chip" id="qr-recap">—</span></div>
+      <p class="qr-hint">📱 Fais scanner cet écran par tes ami·es : ils atterrissent direct dans la partie !</p>
+      <div class="qr-box"><div id="qrcode"></div></div>
+      <div class="link-row">
+        <input type="text" id="qr-link" readonly>
+        <button id="copy-link-btn">Copier</button>
+      </div>
+      <div class="result-actions">
+        <button class="btn-primary" id="play-here-btn">🎮 Jouer aussi sur cet écran</button>
+        <button class="btn-secondary" id="qr-back-btn">← Retour</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-top">
+      <span id="quiz-label">—</span>
+      <span id="quiz-progress">1 / 8</span>
+    </div>
+    <div class="timer-row">
+      <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+      <span class="timer-text" id="timer-text">20s</span>
+    </div>
+    <div class="beads" id="beads"></div>
+    <div class="question-card">
+      <div class="eyebrow" id="q-eyebrow">Catégorie</div>
+      <h2 id="q-text">Question ?</h2>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+
+    <div class="group-reveal-wrap" id="group-reveal-wrap">
+      <button class="next-btn show" id="group-reveal-btn" style="background:var(--magenta);">👀 Révéler la réponse</button>
+      <div class="players-wrap" id="group-players-wrap">
+        <p class="section-label" style="margin:14px 0 10px; font-size:1rem;">Qui a trouvé ?</p>
+        <div class="player-chips" id="player-chips"></div>
+        <button class="btn-primary" id="validate-round-btn" style="width:100%; margin-top:14px;">Valider ce tour</button>
+      </div>
+      <div class="mini-leaderboard" id="mini-leaderboard"></div>
+    </div>
+
+    <button class="next-btn" id="next-btn">Question suivante →</button>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="result">
+      <div class="medal"><div class="medal-inner">
+        <span class="score-num" id="score-num">0</span>
+        <span class="score-total" id="score-total">/ 8</span>
+      </div></div>
+      <h2 id="result-title">—</h2>
+      <p class="msg" id="result-msg">—</p>
+      <div class="result-actions">
+        <button class="btn-primary" id="retry-btn">Refaire ce niveau</button>
+        <button class="btn-secondary" id="home-btn">Choisir une autre catégorie</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-manche-result" class="screen">
+    <div class="result">
+      <h2 id="manche-title">—</h2>
+      <div class="manche-ranking" id="manche-ranking"></div>
+      <div class="result-actions">
+        <button class="btn-primary" id="manche-next-btn">Manche suivante ▶</button>
+        <div id="manche-final-actions" style="display:none; flex-direction:column; gap:10px;">
+          <button class="btn-secondary" id="manche-home-btn">Nouvelle partie</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURATION FIREBASE — à remplir pour activer le mode Groupe en ligne
+   1. Va sur https://console.firebase.google.com
+   2. Crée un projet gratuit, puis Build > Realtime Database > Créer (mode test)
+   3. Paramètres du projet > Vos applications > icône "</>" (Web) > copie l'objet de config
+   4. Colle les valeurs ci-dessous à la place de "PASTE_..."
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAXxaAaTH8rE41pLa-QXiVDy-KgsObdHgk",
+  authDomain: "rasin-quiz.firebaseapp.com",
+  databaseURL: "https://rasin-quiz-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "rasin-quiz",
+  storageBucket: "rasin-quiz.firebasestorage.app",
+  messagingSenderId: "708081542794",
+  appId: "1:708081542794:web:6813efb59f954d13bdaf73"
+};
+let firebaseReady = false;
+let db = null;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('PASTE_') === -1){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    firebaseReady = true;
+  }
+}catch(e){ console.warn('Firebase non configuré :', e); }
+
+const QUIZ_DATA = {
+  histoire: { name:"Histoire", icon:"🏛️", color:"var(--hibiscus)",
+    debutant:[
+      {q:"Quel pays caribéen a été la première république noire indépendante au monde ?", o:["Jamaïque","Haïti","Cuba","Barbade"], a:1},
+      {q:"Toussaint Louverture est une figure majeure de quelle révolution ?", o:["La révolution française","La révolution haïtienne","La révolution cubaine","La révolution américaine"], a:1},
+      {q:"En quelle année l'esclavage a-t-il été aboli définitivement en France ?", o:["1794","1848","1815","1900"], a:1},
+      {q:"Nelson Mandela a été président de quel pays ?", o:["Kenya","Nigeria","Afrique du Sud","Ghana"], a:2},
+      {q:"Quel continent est considéré comme le berceau de l'humanité ?", o:["Asie","Europe","Afrique","Amérique"], a:2},
+      {q:"En quelle année la Jamaïque a-t-elle obtenu son indépendance du Royaume-Uni ?", o:["1962","1970","1955","1980"], a:0},
+      {q:"Quel pays africain a été fondé au 19e siècle par d'anciens esclaves américains affranchis ?", o:["Libéria","Ghana","Sierra Leone","Éthiopie"], a:0},
+      {q:"Quelle organisation, fondée en 1963, visait à unifier les pays africains ?", o:["L'Organisation de l'Unité Africaine","L'Union Européenne","L'ONU Afrique","Le Commonwealth"], a:0},
+      {q:"Comment s'appelait le système de ségrégation raciale institutionnalisé en Afrique du Sud ?", o:["L'apartheid","La ségrégation","Le protectorat","La colonisation"], a:0},
+      {q:"Quel document américain de 1863 a proclamé la libération des esclaves des États confédérés ?", o:["La Proclamation d'émancipation","La Déclaration d'indépendance","Le 13e amendement","Le Bill of Rights"], a:0},
+      {q:"Rosa Parks est connue pour avoir refusé de céder sa place dans quel type de véhicule en 1955 ?", o:["Un bus","Un train","Un tramway","Un taxi"], a:0},
+      {q:"En quelle année Martin Luther King Jr. a-t-il prononcé son discours « I Have a Dream » ?", o:["1963","1955","1968","1970"], a:0},
+      {q:"Quel mouvement des années 1920 à New York a marqué l'essor de la culture afro-américaine ?", o:["La Renaissance de Harlem","Le Black Power","La Beat Generation","Le New Deal"], a:0},
+      {q:"Quelle ordonnance royale de 1685 encadrait l'esclavage dans les colonies françaises ?", o:["Le Code Noir","Le Code Civil","L'Édit de Nantes","La Charte coloniale"], a:0},
+      {q:"Quel pays d'Afrique de l'Est a été le seul à ne jamais être colonisé (hormis une brève occupation italienne) ?", o:["Éthiopie","Kenya","Tanzanie","Somalie"], a:0}
+    ],
+    confirme:[
+      {q:"En quelle année le Ghana est-il devenu le premier pays d'Afrique subsaharienne indépendant ?", o:["1957","1960","1962","1975"], a:0},
+      {q:"Qui a été le premier président du Sénégal indépendant ?", o:["Léopold Sédar Senghor","Modibo Keïta","Kwame Nkrumah","Sékou Touré"], a:0},
+      {q:"En quelle année ont eu lieu les premières élections multiraciales en Afrique du Sud ?", o:["1990","1994","1999","2000"], a:1},
+      {q:"La traite négrière transatlantique s'est déroulée principalement du...", o:["10e au 13e siècle","15e au 19e siècle","18e au 20e siècle","5e au 9e siècle"], a:1},
+      {q:"Quel empire précolonial africain est connu pour son commerce de l'or et la ville de Tombouctou ?", o:["Royaume du Bénin","Empire du Mali","Royaume Kongo","Empire Zoulou"], a:1},
+      {q:"Combien de pays africains ont obtenu leur indépendance en 1960, surnommée « l'année de l'Afrique » ?", o:["17","5","25","10"], a:0},
+      {q:"Quel roi belge est tenu responsable de l'exploitation coloniale brutale du Congo à la fin du 19e siècle ?", o:["Léopold II","Baudouin Ier","Albert Ier","Léopold Ier"], a:0},
+      {q:"Quel est le nom de la guerre d'indépendance qui a opposé l'Algérie à la France de 1954 à 1962 ?", o:["La guerre d'Algérie","La guerre du Rif","La guerre de Suez","La guerre coloniale"], a:0},
+      {q:"Qui a été le premier président de la Côte d'Ivoire indépendante en 1960 ?", o:["Félix Houphouët-Boigny","Laurent Gbagbo","Alassane Ouattara","Henri Konan Bédié"], a:0},
+      {q:"Quelle organisation a remplacé l'OUA en 2002 ?", o:["L'Union Africaine","La CEDEAO","Le G5 Sahel","L'OTAN Afrique"], a:0},
+      {q:"En quelle année Nelson Mandela a-t-il été libéré de prison après 27 ans d'incarcération ?", o:["1990","1985","1994","1980"], a:0},
+      {q:"Quel massacre de 1994 a coûté la vie à environ 800 000 personnes, principalement des Tutsis ?", o:["Le génocide au Rwanda","Le massacre de Soweto","La guerre du Biafra","Le massacre de Sharpeville"], a:0},
+      {q:"Quelle loi américaine de 1964 a interdit la discrimination raciale dans les lieux publics et l'emploi ?", o:["Le Civil Rights Act","Le Voting Rights Act","Le Fair Housing Act","Le Emancipation Act"], a:0},
+      {q:"Quel événement de 1963 a rassemblé plus de 200 000 personnes à Washington pour les droits civiques ?", o:["La Marche sur Washington","Le Freedom Summer","Le Montgomery Bus Boycott","Le Selma March"], a:0},
+      {q:"Samuel Sharpe a mené quelle révolte d'esclaves majeure en Jamaïque en 1831-1832 ?", o:["La guerre baptiste (Christmas Rebellion)","La révolte de Tacky","La guerre des Marrons","La rébellion de Morant Bay"], a:0}
+    ],
+    connaisseur:[
+      {q:"Qui a dirigé la cérémonie du Bois Caïman, souvent citée comme déclencheur de la révolution haïtienne ?", o:["Dutty Boukman","Jean-Jacques Dessalines","Henri Christophe","Alexandre Pétion"], a:0},
+      {q:"En quelle année Jean-Jacques Dessalines a-t-il proclamé l'indépendance d'Haïti ?", o:["1791","1804","1810","1825"], a:1},
+      {q:"Quelle était la capitale de l'Empire du Mali sous Mansa Moussa ?", o:["Gao","Tombouctou","Niani","Djenné"], a:2},
+      {q:"Quel accord de 1885 a organisé le partage colonial de l'Afrique entre puissances européennes ?", o:["Traité de Versailles","Conférence de Berlin","Traité de Tordesillas","Congrès de Vienne"], a:1},
+      {q:"Quelle figure féminine a mené la résistance contre l'esclavage en Guadeloupe ?", o:["Solitude","Sarah Baartman","Nanny of the Maroons","Harriet Tubman"], a:0},
+      {q:"Quel roi du Dahomey (actuel Bénin) a résisté à la colonisation française dans les années 1890 avec son armée d'Amazones ?", o:["Béhanzin","Ghezo","Toffa","Agonglo"], a:0},
+      {q:"Quelle crise politique majeure a suivi l'indépendance du Congo belge en 1960 ?", o:["La crise congolaise","La guerre du Biafra","La crise de Suez","La guerre du Katanga uniquement"], a:0},
+      {q:"Quelle bataille de 1896 a vu l'Éthiopie vaincre l'Italie, préservant son indépendance ?", o:["La bataille d'Adoua","La bataille de Khartoum","La bataille d'Omdurman","La bataille de Tanger"], a:0},
+      {q:"Quel empereur éthiopien a mené la victoire à la bataille d'Adoua ?", o:["Ménélik II","Hailé Sélassié","Théodoros II","Iyasou V"], a:0},
+      {q:"Quelle révolte de 1900, menée par la reine-mère Yaa Asantewaa, s'opposait aux Britanniques dans l'actuel Ghana ?", o:["La guerre du Tabouret d'or","La guerre ashanti de 1874","La révolte des Mau Mau","La guerre des Boers"], a:0},
+      {q:"Quelle organisation panafricaine, fondée par Marcus Garvey en 1914, prônait le retour des Afro-descendants en Afrique ?", o:["L'UNIA","L'OUA","La NAACP","Le Black Panther Party"], a:0},
+      {q:"Quel massacre a suivi la proclamation d'indépendance d'Haïti en 1804, visant les colons français restants ?", o:["Le massacre des Français de 1804","Le massacre de Ponce","La révolte de Vertières","Le massacre de Léogâne"], a:0},
+      {q:"Quelle conférence de 1955, réunissant des pays d'Afrique et d'Asie, a marqué la naissance du mouvement des non-alignés ?", o:["La conférence de Bandung","La conférence de Berlin","La conférence de Yalta","La conférence d'Accra"], a:0},
+      {q:"Quel traité de 1494 a posé les bases du partage colonial entre l'Espagne et le Portugal ?", o:["Le traité de Tordesillas","Le traité de Berlin","Le traité d'Utrecht","Le traité de Westphalie"], a:0},
+      {q:"Quel royaume ouest-africain, fondé au 17e siècle et connu pour son armée d'Amazones, deviendra le Bénin actuel ?", o:["Le royaume du Dahomey","Le royaume du Bénin (Edo)","L'empire Ashanti","Le royaume de Oyo"], a:0}
+    ]
+  },
+  musique: { name:"Musique", icon:"🎶", color:"var(--sun-gold)",
+    debutant:[
+      {q:"Qui a chanté « One Love » ?", o:["Bob Marley","Peter Tosh","Jimmy Cliff","Toots Hibbert"], a:0},
+      {q:"Qui interprète « No Woman No Cry » ?", o:["Bob Marley","Burning Spear","Gregory Isaacs","Desmond Dekker"], a:0},
+      {q:"Quelle chanteuse barbadienne interprète « Diamonds » ?", o:["Rihanna","Beyoncé","Nicki Minaj","Cardi B"], a:0},
+      {q:"Qui chante « Umbrella » ?", o:["Rihanna","Alicia Keys","Ciara","Ashanti"], a:0},
+      {q:"Qui a chanté « Premier Gaou » ?", o:["Magic System","Kassav'","Tabou Combo","Fally Ipupa"], a:0},
+      {q:"Quel groupe est à l'origine du zouk « Zouk-la sé sèl médikaman nou ni » ?", o:["Kassav'","Tabou Combo","Malavoi","Zouk Machine"], a:0},
+      {q:"Qui interprète « Essence » avec Justin Bieber ?", o:["Wizkid","Burna Boy","Davido","Tekno"], a:0},
+      {q:"Qui chante « African Queen » ?", o:["2Baba (2Face Idibia)","Wizkid","D'banj","P-Square"], a:0},
+      {q:"Qui interprète « Ye » ?", o:["Burna Boy","Wizkid","Davido","Fela Kuti"], a:0},
+      {q:"Qui a chanté « Get Busy » ?", o:["Sean Paul","Shaggy","Beenie Man","Elephant Man"], a:0},
+      {q:"Qui interprète « Angel » avec Rayvon ?", o:["Shaggy","Sean Paul","Kevin Lyttle","Wyclef Jean"], a:0},
+      {q:"Qui chante « It Wasn't Me » ?", o:["Shaggy","Sean Paul","Shabba Ranks","Bounty Killer"], a:0},
+      {q:"Quelle chanteuse française d'origine malienne interprète « Djadja » ?", o:["Aya Nakamura","Dadju","Tayc","Shay"], a:0},
+      {q:"Qui interprète « 7 Seconds » avec Neneh Cherry ?", o:["Youssou N'Dour","Salif Keïta","Manu Dibango","Baaba Maal"], a:0},
+      {q:"Qui a chanté « Pata Pata » ?", o:["Miriam Makeba","Brenda Fassie","Angélique Kidjo","Yvonne Chaka Chaka"], a:0}
+    ],
+    confirme:[
+      {q:"Qui interprète « Redemption Song » ?", o:["Bob Marley","Jimmy Cliff","Peter Tosh","Burning Spear"], a:0},
+      {q:"Qui a chanté « Soul Makossa », un titre qui a influencé la disco mondiale ?", o:["Manu Dibango","Fela Kuti","King Sunny Ade","Franco"], a:0},
+      {q:"Qui interprète « The Click Song » (Qongqothwane) ?", o:["Miriam Makeba","Brenda Fassie","Yvonne Chaka Chaka","Letta Mbulu"], a:0},
+      {q:"Qui a chanté « Yeke Yeke » ?", o:["Mory Kanté","Salif Keïta","Youssou N'Dour","Ismaël Lô"], a:0},
+      {q:"Qui interprète « Zombie », titre emblématique contre les dictatures militaires au Nigeria ?", o:["Fela Kuti","King Sunny Ade","Femi Kuti","Ebo Taylor"], a:0},
+      {q:"Qui a chanté « Agolo » ?", o:["Angélique Kidjo","Miriam Makeba","Oumou Sangaré","Cesária Évora"], a:0},
+      {q:"Avec quelle artiste Youssou N'Dour interprète-t-il « 7 Seconds » ?", o:["Neneh Cherry","Sade","Des'ree","Skin"], a:0},
+      {q:"Dans quelle île le groupe Kassav', pionnier du zouk, a-t-il été fondé ?", o:["Guadeloupe","Martinique","Haïti","Trinidad"], a:0},
+      {q:"Qui a chanté « Sweet Mother », un des tubes les plus populaires d'Afrique de l'Ouest ?", o:["Prince Nico Mbarga","Fela Kuti","E.T. Mensah","King Sunny Ade"], a:0},
+      {q:"Le makossa, popularisé par Manu Dibango, est né dans quel pays ?", o:["Cameroun","Nigeria","Ghana","Sénégal"], a:0},
+      {q:"Qui interprète « Coupé Bibamba » ?", o:["Awilo Longomba","Papa Wemba","Koffi Olomidé","Franco"], a:0},
+      {q:"Papa Wemba est une figure majeure de quel genre musical congolais ?", o:["Soukous","Makossa","Bikutsi","Coupé-décalé"], a:0},
+      {q:"Qui a chanté « Ndolo » ?", o:["Fally Ipupa","Koffi Olomidé","Awilo Longomba","Papa Wemba"], a:0},
+      {q:"Le groupe Tabou Combo, célèbre pour le kompa, est originaire de quel pays ?", o:["Haïti","République Dominicaine","Guyane","Sénégal"], a:0},
+      {q:"Youssou N'Dour est un pionnier de quel genre musical sénégalais ?", o:["Mbalax","Zouglou","Highlife","Soukous"], a:0}
+    ],
+    connaisseur:[
+      {q:"Qui est considéré comme le père du highlife ghanéen moderne ?", o:["E.T. Mensah","Fela Kuti","Miriam Makeba","King Sunny Ade"], a:0},
+      {q:"Le coupé-décalé est né dans quelle communauté avant de devenir populaire en Côte d'Ivoire ?", o:["Diaspora ivoirienne à Paris","Diaspora sénégalaise à New York","Diaspora congolaise à Bruxelles","Diaspora malienne à Londres"], a:0},
+      {q:"Quel instrument est considéré comme l'ancêtre du banjo ?", o:["Ngoni","Kora","Djembé","Balafon"], a:0},
+      {q:"Quelle chanteuse sud-africaine surnommée « Mama Africa » a marqué la lutte anti-apartheid ?", o:["Miriam Makeba","Angélique Kidjo","Brenda Fassie","Yvonne Chaka Chaka"], a:0},
+      {q:"Le « gwo ka », tradition musicale et de percussion, est originaire de quelle île ?", o:["Guadeloupe","Martinique","Haïti","Trinidad"], a:0},
+      {q:"Quel titre est devenu l'hymne officieux de l'indépendance du Congo en 1960 ?", o:["Independence Cha Cha","Zombie","Soul Makossa","Yeke Yeke"], a:0},
+      {q:"Qui a composé et interprété « Independence Cha Cha » ?", o:["Le Grand Kallé (Joseph Kabasele)","Franco","Papa Wemba","Tabu Ley Rochereau"], a:0},
+      {q:"Quel musicien congolais, fondateur du groupe TPOK Jazz, est surnommé « le sorcier de la guitare » ?", o:["Franco (Luambo Makiadi)","Papa Wemba","Koffi Olomidé","Awilo Longomba"], a:0},
+      {q:"Qui est considéré comme le père du « kompa direct », style fondé en 1955 ?", o:["Nemours Jean-Baptiste","Weber Sicot","Tabou Combo","Coupé Cloué"], a:0},
+      {q:"Quel est le nom du rival de Nemours Jean-Baptiste, créateur du style « cadence rampa » ?", o:["Weber Sicot","Coupé Cloué","Ansy Dérose","Ti Manno"], a:0},
+      {q:"Quelle chanteuse capverdienne est surnommée la « diva aux pieds nus » ?", o:["Cesária Évora","Mayra Andrade","Lura","Sara Tavares"], a:0},
+      {q:"Cesária Évora est associée à quel genre musical capverdien mélancolique ?", o:["Morna","Fado","Kizomba","Semba"], a:0},
+      {q:"Quel groupe martiniquais du « kadans » moderne des années 1980 est souvent cité comme rival de Kassav' ?", o:["Malavoi","Experience 7","Zouk Machine","Les Aiglons"], a:0},
+      {q:"Quel courant musical haïtien, mêlant rythmes vaudou et instruments modernes, est porté par des groupes comme Boukman Eksperyans ?", o:["Mizik rasin","Kompa direct","Cadence rampa","Twoubadou"], a:0},
+      {q:"Le mot « rasin » (racine), donné à ce courant musical haïtien des années 1980-90, renvoie à quelle inspiration principale ?", o:["Les rythmes traditionnels vaudou","Le jazz américain","Le disco européen","Le flamenco espagnol"], a:0}
+    ]
+  },
+  cuisine: { name:"Cuisine", icon:"🍲", color:"var(--emerald)",
+    debutant:[
+      {q:"Les accras sont des beignets typiques de quelle cuisine ?", o:["Antillaise","Sénégalaise","Marocaine","Brésilienne"], a:0},
+      {q:"Le riz et pois est un plat typique de quelle région ?", o:["Antilles","Scandinavie","Europe de l'Est","Asie centrale"], a:0},
+      {q:"Le jollof rice est emblématique de quelle région d'Afrique ?", o:["Afrique de l'Ouest","Afrique australe","Afrique de l'Est","Afrique du Nord"], a:0},
+      {q:"Le colombo est un plat épicé typique de quelle cuisine ?", o:["Antillaise","Italienne","Grecque","Libanaise"], a:0},
+      {q:"Le plantain est un ingrédient de base dans quelle cuisine ?", o:["Caribéenne et africaine","Scandinave","Japonaise","Russe"], a:0},
+      {q:"La feijoada, plat national brésilien à base de haricots noirs, reflète l'héritage de quelle culture ?", o:["La culture afro-brésilienne","La culture portugaise seule","La culture andine","La culture italienne"], a:0},
+      {q:"Le gumbo est un plat emblématique de quelle région américaine, à forte influence créole ?", o:["La Louisiane","Le Texas","La Floride","La Géorgie"], a:0},
+      {q:"Le « nyama choma » (viande grillée) est une spécialité populaire de quel pays d'Afrique de l'Est ?", o:["Kenya","Éthiopie","Tanzanie","Ouganda"], a:0},
+      {q:"Le « biltong » (viande séchée épicée) est une spécialité traditionnelle de quel pays ?", o:["Afrique du Sud","Namibie","Botswana","Zimbabwe"], a:0},
+      {q:"Le « cachupa », plat mijoté à base de maïs et de haricots, est le plat national de quel archipel ?", o:["Cap-Vert","São Tomé-et-Príncipe","Comores","Seychelles"], a:0},
+      {q:"Le sancoche antillais est un ragoût traditionnellement préparé avec quels ingrédients de base ?", o:["Viande et légumes-pays (igname, patate douce...)","Poisson cru et citron vert","Riz et lait de coco uniquement","Fruits et épices sucrées"], a:0},
+      {q:"Le rhum arrangé, boisson infusée aux fruits et épices, est une tradition typique de quelle région ?", o:["Les Antilles","La Scandinavie","L'Asie du Sud-Est","L'Europe de l'Est"], a:0},
+      {q:"L'attiéké, semoule de manioc fermentée, est un accompagnement traditionnel de quel pays ?", o:["Côte d'Ivoire","Sénégal","Ghana","Mali"], a:0},
+      {q:"Dans quelle cuisine le plantain frit (aloco/dodo) est-il un accompagnement très populaire ?", o:["La cuisine ouest-africaine","La cuisine scandinave","La cuisine japonaise","La cuisine andine"], a:0},
+      {q:"Le beignet, célèbre à la Nouvelle-Orléans, est un héritage de quelle cuisine coloniale ?", o:["La cuisine créole française","La cuisine espagnole","La cuisine anglaise","La cuisine néerlandaise"], a:0}
+    ],
+    confirme:[
+      {q:"Le riz djon djon, à base d'un champignon noir local, est une spécialité de quel pays ?", o:["Haïti","Jamaïque","Cuba","Guadeloupe"], a:0},
+      {q:"Le mafé, à base de pâte d'arachide, est originaire de quelle région ?", o:["Afrique de l'Ouest","Afrique du Nord","Afrique centrale","Corne de l'Afrique"], a:0},
+      {q:"Le callaloo est préparé à base de quelles feuilles vertes ?", o:["Feuilles de taro / amarante","Feuilles de vigne","Feuilles de bananier","Feuilles de menthe"], a:0},
+      {q:"Le poulet yassa est une spécialité de quel pays ?", o:["Sénégal","Kenya","Maroc","Éthiopie"], a:0},
+      {q:"Le bokit, sandwich frit, est typique de quelle île ?", o:["Guadeloupe","Martinique","Haïti","Cuba"], a:0},
+      {q:"Le matoke, plat à base de banane plantain écrasée et cuite à la vapeur, est un plat de base de quel pays ?", o:["Ouganda","Kenya","Tanzanie","Rwanda"], a:0},
+      {q:"Le chapati, pain plat très populaire en Afrique de l'Est, est un héritage de quelle cuisine ?", o:["La cuisine indienne","La cuisine arabe","La cuisine française","La cuisine portugaise"], a:0},
+      {q:"Le « sos pwa », sauce de haricots typique d'Haïti, accompagne traditionnellement quel aliment ?", o:["Le riz","Les pâtes","La semoule","Le pain"], a:0},
+      {q:"Le poulet à la moambé, plat à base de noix de palme, est une spécialité de quel pays ?", o:["République démocratique du Congo","Cameroun","Gabon","Congo-Brazzaville"], a:0},
+      {q:"L'acarajé, beignet de haricots frit dans l'huile de palme, est une spécialité afro-brésilienne emblématique de quelle ville ?", o:["Salvador de Bahia","Rio de Janeiro","São Paulo","Recife"], a:0},
+      {q:"Le rougail saucisse, plat à base de tomates épicées, est emblématique de quelle île de l'océan Indien ?", o:["La Réunion","Madagascar","Maurice","Les Comores"], a:0},
+      {q:"Le kwanga (pain de manioc fermenté) est consommé traditionnellement dans quelle région ?", o:["Afrique centrale (bassin du Congo)","Afrique de l'Est","Afrique australe","Afrique du Nord"], a:0},
+      {q:"Le sancoche du dimanche, soupe traditionnelle guadeloupéenne, contient le plus souvent quel type de viande ?", o:["Du bœuf","Du poulet uniquement","Du poisson","De l'agneau"], a:0},
+      {q:"Le kedjenou, plat mijoté dans une canari fermée hermétiquement, est une spécialité de quel pays ?", o:["Côte d'Ivoire","Ghana","Bénin","Togo"], a:0},
+      {q:"Le fruit à pain, souvent confondu avec l'arbre à pain, se consomme traditionnellement dans quelle cuisine ?", o:["La cuisine caribéenne","La cuisine scandinave","La cuisine méditerranéenne","La cuisine andine"], a:0}
+    ],
+    connaisseur:[
+      {q:"L'injera, pain plat fermenté, est la base de la cuisine de quel pays ?", o:["Éthiopie","Nigeria","Ghana","Sénégal"], a:0},
+      {q:"L'ackee, à préparer avec précaution, est l'ingrédient du plat national de quel pays ?", o:["Jamaïque","Trinidad","Barbade","Bahamas"], a:0},
+      {q:"Le thieboudienne (ceebu jën) est le plat national de quel pays ?", o:["Sénégal","Mali","Guinée","Côte d'Ivoire"], a:0},
+      {q:"Le féroce d'avocat est une entrée épicée typique de quelle île ?", o:["Martinique","Haïti","Cuba","Trinidad"], a:0},
+      {q:"Le fufu (foutou), à base de manioc ou d'igname pilé, est consommé principalement en...", o:["Afrique de l'Ouest et centrale","Afrique australe","Afrique du Nord","Corne de l'Afrique"], a:0},
+      {q:"Le berbéré, mélange d'épices emblématique de la cuisine éthiopienne, doit sa couleur rouge à quel ingrédient ?", o:["Le piment","Le curcuma","Le paprika doux","La tomate séchée"], a:0},
+      {q:"Le doro wat, ragoût de poulet épicé, est le plat de fête par excellence de quel pays ?", o:["Éthiopie","Nigeria","Kenya","Ghana"], a:0},
+      {q:"Le moin moin, pudding de haricots cuit à la vapeur, est un plat traditionnel de quel pays ouest-africain ?", o:["Nigeria","Ghana","Sénégal","Mali"], a:0},
+      {q:"L'egusi, ragoût à base de graines de melon moulues, est une spécialité culinaire de quel pays ?", o:["Nigeria","Cameroun","Bénin","Togo"], a:0},
+      {q:"Le chakalaka, relish épicé à base de légumes, accompagne traditionnellement le braai (barbecue) dans quel pays ?", o:["Afrique du Sud","Zimbabwe","Namibie","Botswana"], a:0},
+      {q:"Le pastel, chausson frit fourré très populaire au Brésil, est particulièrement associé à quelle ville ?", o:["São Paulo","Rio de Janeiro","Salvador de Bahia","Brasília"], a:0},
+      {q:"Le tacacá, soupe à base de manioc fermenté et de crevettes séchées, est une spécialité de quelle région brésilienne aux influences afro-amazoniennes ?", o:["Le Pará (Amazonie)","Bahia","Minas Gerais","Le Nordeste"], a:0},
+      {q:"La sauce graine, à base de noix de palme, est une spécialité de quel pays d'Afrique de l'Ouest ?", o:["Côte d'Ivoire","Sénégal","Mali","Guinée"], a:0},
+      {q:"Le ndolé, plat à base de feuilles amères et d'arachides, est considéré comme le plat national de quel pays ?", o:["Cameroun","Gabon","Congo","Tchad"], a:0},
+      {q:"L'injera est traditionnellement préparé à partir de quelle céréale locale éthiopienne ?", o:["Le teff","Le sorgho","Le mil","Le fonio"], a:0}
+    ]
+  },
+  langues: { name:"Langues & expressions", icon:"🗣️", color:"var(--teal)",
+    debutant:[
+      {q:"Le créole haïtien est principalement basé sur quelle langue européenne ?", o:["Français","Espagnol","Portugais","Anglais"], a:0},
+      {q:"Que signifie « Sa ou fè ? » en créole haïtien ?", o:["Comment vas-tu ?","Où vas-tu ?","Quel âge as-tu ?","Comment tu t'appelles ?"], a:0},
+      {q:"Le mot « Ayibobo », utilisé en Haïti, exprime généralement...", o:["Une acclamation","Une insulte","Un au revoir","Une question"], a:0},
+      {q:"En créole antillais, « Ka sa yé ? » signifie à peu près...", o:["Qu'est-ce que c'est ?","Où es-tu ?","Combien ça coûte ?","Quelle heure est-il ?"], a:0},
+      {q:"Le swahili est parlé principalement dans quelle région d'Afrique ?", o:["Afrique de l'Est","Afrique de l'Ouest","Afrique du Nord","Afrique australe"], a:0},
+      {q:"Comment dit-on « merci » en swahili ?", o:["Asante","Jambo","Karibu","Habari"], a:0},
+      {q:"Le mot swahili « Jambo » est une salutation qui signifie...", o:["Bonjour / Salut","Merci","Au revoir","Pardon"], a:0},
+      {q:"En wolof, « Jërejëf » signifie...", o:["Merci","Bonjour","Au revoir","S'il te plaît"], a:0},
+      {q:"Le mot « Ubuntu », popularisé par Nelson Mandela, exprime l'idée de...", o:["« Je suis parce que nous sommes »","La force individuelle","Le pardon religieux","La richesse matérielle"], a:0},
+      {q:"Le mot créole antillais « Doudou » est un terme affectueux signifiant à peu près...", o:["Chéri(e) / mon amour","Ami(e)","Voisin(e)","Cousin(e)"], a:0},
+      {q:"En créole haïtien, « Mèsi » signifie...", o:["Merci","Bonjour","Pardon","Au revoir"], a:0},
+      {q:"Le mot « Griot », désignant un conteur/musicien traditionnel dépositaire de la mémoire orale, vient de quelle région ?", o:["Afrique de l'Ouest","Afrique australe","Afrique de l'Est","Afrique du Nord"], a:0},
+      {q:"En lingala, « Mbote » est une façon de dire...", o:["Bonjour","Merci","Au revoir","Pardon"], a:0},
+      {q:"Le mot créole « Chimen » (comme dans « chimen lakay ») signifie...", o:["Chemin","Maison","Famille","Cœur"], a:0},
+      {q:"Le haoussa (hausa) est une langue majoritairement parlée dans quels pays ?", o:["Nigeria et Niger","Kenya et Tanzanie","Mali et Sénégal","Ghana et Togo"], a:0}
+    ],
+    confirme:[
+      {q:"Le wolof est parlé majoritairement dans quel pays ?", o:["Sénégal","Cameroun","Congo","Éthiopie"], a:0},
+      {q:"« Anasé » est une formule utilisée en créole guadeloupéen pour...", o:["Introduire un conte","Décrire un plat","Nommer une danse","Saluer le matin"], a:0},
+      {q:"Le lingala est une langue véhiculaire majeure de quel pays ?", o:["RD Congo","Sénégal","Côte d'Ivoire","Mali"], a:0},
+      {q:"L'expression jamaïcaine « Wah gwaan ? » signifie...", o:["Quoi de neuf ?","Au revoir","Merci beaucoup","Je t'aime"], a:0},
+      {q:"Le patois jamaïcain est une langue basée principalement sur...", o:["L'anglais, avec influences africaines","Le français","L'espagnol","Le portugais"], a:0},
+      {q:"En créole guadeloupéen, l'expression « Ka to fè ? » veut dire à peu près...", o:["Comment vas-tu ?","Où vas-tu ?","Quel âge as-tu ?","Que fais-tu ce soir ?"], a:0},
+      {q:"« Sa k pase ? » en créole haïtien est une façon familière de demander...", o:["Quoi de neuf ?","Comment t'appelles-tu ?","Où habites-tu ?","Quel âge as-tu ?"], a:0},
+      {q:"En wolof, « Jàmm rekk » est une réponse courante signifiant...", o:["Tout va bien, la paix seulement","Je ne sais pas","À bientôt","Bon appétit"], a:0},
+      {q:"Le bambara est une langue véhiculaire majeure de quel pays ?", o:["Mali","Sénégal","Guinée","Burkina Faso"], a:0},
+      {q:"Le « sabar », à la fois un tambour et une danse, est emblématique de quelle culture ?", o:["La culture wolof (Sénégal)","La culture zouloue","La culture akan","La culture peule"], a:0},
+      {q:"En patois jamaïcain, « Irie » est un mot rasta qui exprime généralement...", o:["Un sentiment de bien-être, « tout est bien »","Une insulte","Un au revoir","Une question"], a:0},
+      {q:"Le mot « Rastafari » tire son nom du nom de couronnement de quel empereur éthiopien ?", o:["Hailé Sélassié Ier","Ménélik II","Théodoros II","Iyasou V"], a:0},
+      {q:"Le peul (fulfulde) est parlé par le peuple peul, réparti principalement dans quelle zone géographique ?", o:["La bande sahélienne d'Afrique de l'Ouest","L'Afrique australe","La corne de l'Afrique","L'Afrique centrale forestière"], a:0},
+      {q:"Le mot créole « Marronnage » désigne historiquement...", o:["La fuite des esclaves pour échapper à l'esclavage","Une fête traditionnelle","Un plat typique","Une danse rituelle"], a:0},
+      {q:"En créole haïtien, le mot « Konpa » désignait à l'origine, en plus du genre musical, quel type d'événement ?", o:["Un bal / une fête dansante","Un rassemblement religieux","Un marché","Un enterrement"], a:0}
+    ],
+    connaisseur:[
+      {q:"Le mot « zombi » vient à l'origine de quelle croyance/langue ?", o:["Croyances vaudou d'origine africaine","Mythologie grecque","Folklore scandinave","Culture aztèque"], a:0},
+      {q:"En wolof, « Nanga def ? » signifie...", o:["Comment vas-tu ?","Comment t'appelles-tu ?","Où habites-tu ?","Quel âge as-tu ?"], a:0},
+      {q:"Le mot créole « lakou » désigne...", o:["Une cour, un espace familial partagé","Un plat traditionnel","Une danse rituelle","Un instrument de musique"], a:0},
+      {q:"Le mot « Sankofa », issu de la culture akan, signifie littéralement...", o:["Retourner chercher ce qu'on a oublié","Aller de l'avant sans regarder en arrière","La force de l'union","La sagesse des anciens"], a:0},
+      {q:"Comme les créoles antillais, le créole réunionnais est principalement basé sur...", o:["Le français","L'anglais","Le néerlandais","Le portugais"], a:0},
+      {q:"Le mot « Vodou » (vaudou) vient d'un mot fon (Bénin) signifiant...", o:["Esprit / divinité","Ancêtre","Cérémonie","Force"], a:0},
+      {q:"Le Gullah, créole parlé par une communauté afro-américaine des îles de Caroline du Sud/Géorgie, est basé sur...", o:["L'anglais, avec un fort substrat de langues d'Afrique de l'Ouest","Le français","L'espagnol","Le portugais"], a:0},
+      {q:"Anansi, l'araignée rusée des contes populaires caribéens, trouve son origine dans la mythologie de quel peuple ?", o:["Le peuple akan (Ghana)","Le peuple zoulou","Le peuple wolof","Le peuple yoruba"], a:0},
+      {q:"Le papiamento, langue créole de Curaçao et Aruba, mélange le portugais, l'espagnol et...", o:["Le néerlandais","L'anglais","Le français","L'allemand"], a:0},
+      {q:"Le krio, langue créole officieuse de la Sierra Leone, est parlé principalement par les descendants de...", o:["Esclaves affranchis installés à Freetown","Colons britanniques","Commerçants portugais","Missionnaires français"], a:0},
+      {q:"Le hoodoo, pratique populaire afro-américaine née en Louisiane, est dérivé de traditions issues de...", o:["L'Afrique de l'Ouest","L'Afrique australe","L'Asie du Sud-Est","L'Amérique précolombienne"], a:0},
+      {q:"Le twi, langue akan parlée majoritairement au Ghana, appartient à quelle grande famille linguistique ?", o:["Niger-Congo","Afro-asiatique","Nilo-saharienne","Khoisan"], a:0},
+      {q:"Le mot créole « Zanmi » signifie...", o:["Ami(e)","Famille","Voisin(e)","Étranger"], a:0},
+      {q:"Le kikongo, parlé en RDC, au Congo-Brazzaville et en Angola, appartient à quelle grande famille linguistique ?", o:["La famille bantoue (Niger-Congo)","La famille nilo-saharienne","La famille afro-asiatique","La famille khoisan"], a:0},
+      {q:"Le mot « Nkisi », désignant des objets rituels de protection dans les traditions kongo, a influencé quelle pratique populaire américaine ?", o:["Le hoodoo (« mojo »)","Le vaudou haïtien uniquement","La santería cubaine uniquement","Le candomblé brésilien uniquement"], a:0}
+    ]
+  },
+  personnalites: { name:"Personnalités", icon:"⭐", color:"var(--magenta)",
+    debutant:[
+      {q:"Bob Marley était originaire de quel pays ?", o:["Jamaïque","Trinidad","Haïti","Cuba"], a:0},
+      {q:"Nelson Mandela a reçu le prix Nobel de la paix durant quelle décennie ?", o:["Les années 1990","Les années 1980","Les années 2000","Les années 1970"], a:0},
+      {q:"Rihanna est originaire de quelle île ?", o:["Barbade","Jamaïque","Trinidad","Haïti"], a:0},
+      {q:"Usain Bolt, sprinteur légendaire, est originaire de quel pays ?", o:["Jamaïque","Nigeria","Kenya","Bahamas"], a:0},
+      {q:"Aimé Césaire, poète et homme politique, est originaire de quelle île ?", o:["Martinique","Guadeloupe","Haïti","Sénégal"], a:0},
+      {q:"Serena Williams, championne de tennis légendaire, est originaire de quel pays ?", o:["États-Unis","Jamaïque","Haïti","Bahamas"], a:0},
+      {q:"Barack Obama a été le combien-ième président des États-Unis, et le premier afro-américain ?", o:["Le 44e","Le 42e","Le 46e","Le 40e"], a:0},
+      {q:"Oprah Winfrey est mondialement célèbre notamment pour son rôle de...", o:["Animatrice et productrice de télévision","Chanteuse d'opéra","Athlète olympique","Cheffe d'État"], a:0},
+      {q:"Michael Jackson, surnommé le « Roi de la Pop », est originaire de quelle ville américaine ?", o:["Gary, Indiana","Detroit, Michigan","Memphis, Tennessee","Atlanta, Géorgie"], a:0},
+      {q:"Muhammad Ali, légende de la boxe, portait quel nom avant sa conversion à l'islam ?", o:["Cassius Clay","Joe Frazier","Sonny Liston","George Foreman"], a:0},
+      {q:"Idris Elba, acteur britannique renommé, est d'origine...", o:["Sierra-léonaise et ghanéenne","Nigériane et kényane","Jamaïcaine et haïtienne","Sénégalaise et malienne"], a:0},
+      {q:"Lewis Hamilton, pilote de Formule 1 multiple champion du monde, est originaire de quel pays ?", o:["Royaume-Uni","États-Unis","Jamaïque","Canada"], a:0},
+      {q:"Naomi Osaka, championne de tennis, a des origines...", o:["Japonaises et haïtiennes","Chinoises et jamaïcaines","Coréennes et nigérianes","Vietnamiennes et sénégalaises"], a:0},
+      {q:"Kamala Harris, ancienne vice-présidente des États-Unis, a des origines...", o:["Jamaïcaines et indiennes","Haïtiennes et chinoises","Nigérianes et mexicaines","Éthiopiennes et coréennes"], a:0},
+      {q:"Viola Davis, actrice multi-récompensée, est originaire de quel État américain ?", o:["Caroline du Sud","Louisiane","Géorgie","Alabama"], a:0}
+    ],
+    confirme:[
+      {q:"En plus d'être président du Sénégal, Léopold Sédar Senghor était aussi reconnu comme...", o:["Poète et académicien","Musicien","Footballeur","Cinéaste"], a:0},
+      {q:"Wangari Maathai, prix Nobel de la paix 2004, est connue pour son engagement...", o:["Environnemental","Musical","Sportif","Cinématographique"], a:0},
+      {q:"Frantz Fanon, penseur martiniquais, est surtout connu pour ses écrits sur...", o:["Le colonialisme et la psychiatrie","L'astronomie","La cuisine créole","La musique"], a:0},
+      {q:"Kwame Nkrumah a été le premier président de quel pays ?", o:["Ghana","Nigeria","Kenya","Togo"], a:0},
+      {q:"Maryse Condé, autrice célèbre, est originaire de quelle île ?", o:["Guadeloupe","Martinique","Haïti","Réunion"], a:0},
+      {q:"Chinua Achebe, auteur du roman culte « Le Monde s'effondre », est originaire de quel pays ?", o:["Nigeria","Ghana","Kenya","Sénégal"], a:0},
+      {q:"Wole Soyinka, premier Africain à recevoir le prix Nobel de littérature (1986), est originaire de quel pays ?", o:["Nigeria","Sénégal","Ghana","Mali"], a:0},
+      {q:"Amadou Hampâté Bâ, écrivain connu pour la phrase « un vieillard qui meurt, c'est une bibliothèque qui brûle », était originaire de...", o:["Mali","Sénégal","Guinée","Niger"], a:0},
+      {q:"Miriam Makeba a témoigné en 1963 contre l'apartheid devant quelle organisation internationale ?", o:["Les Nations unies","L'Union africaine","L'UNESCO","Le Conseil de l'Europe"], a:0},
+      {q:"Thomas Sankara, souvent surnommé le « Che Guevara africain », a été président de quel pays de 1983 à 1987 ?", o:["Le Burkina Faso","Le Mali","Le Sénégal","La Guinée"], a:0},
+      {q:"Angela Davis, militante et universitaire afro-américaine, est notamment associée à quel mouvement des années 1960-70 ?", o:["Le Black Panther Party","Le mouvement Rasta","La Négritude","Le mouvement Ubuntu"], a:0},
+      {q:"Patrice Lumumba a été assassiné en quelle année, peu après l'indépendance du Congo ?", o:["1961","1965","1970","1958"], a:0},
+      {q:"Édouard Glissant, penseur et écrivain martiniquais, est connu pour avoir développé le concept de...", o:["La créolisation / le Tout-Monde","La Négritude","L'Ubuntu","Le panafricanisme"], a:0},
+      {q:"Simone Schwarz-Bart, autrice guadeloupéenne, est notamment connue pour son roman...", o:["« Pluie et vent sur Télumée Miracle »","« Ségou »","« Moi, Tituba sorcière »","« Traversée de la Mangrove »"], a:0},
+      {q:"Aimé Césaire a cofondé, avec Senghor et Damas, le mouvement littéraire et politique de...", o:["La Négritude","Le panafricanisme","L'Ubuntu","Le créolisme"], a:0}
+    ],
+    connaisseur:[
+      {q:"Patrice Lumumba a été le premier Premier ministre de quel pays, indépendant en 1960 ?", o:["Congo (RDC)","Congo-Brazzaville","Angola","Gabon"], a:0},
+      {q:"Suzanne Césaire, figure du mouvement de la Négritude, était mariée à...", o:["Aimé Césaire","Léopold Sédar Senghor","Frantz Fanon","Léon-Gontran Damas"], a:0},
+      {q:"Toni Morrison, prix Nobel de littérature 1993, est connue pour le roman...", o:["Beloved","L'Étranger","Cent ans de solitude","La Peste"], a:0},
+      {q:"Marcus Garvey, figure du panafricanisme, était originaire de quel pays ?", o:["Jamaïque","Ghana","Trinidad","Barbade"], a:0},
+      {q:"Léon-Gontran Damas, cofondateur du mouvement de la Négritude, était originaire de...", o:["Guyane","Martinique","Sénégal","Haïti"], a:0},
+      {q:"W.E.B. Du Bois, intellectuel afro-américain pionnier, a cofondé quelle organisation en 1909 ?", o:["La NAACP","L'UNIA","Le Black Panther Party","La SNCC"], a:0},
+      {q:"Amílcar Cabral a mené la lutte de libération de la Guinée-Bissau et de quel autre archipel ?", o:["Le Cap-Vert","São Tomé-et-Príncipe","Les Comores","Les Seychelles"], a:0},
+      {q:"Julius Nyerere, premier président de la Tanzanie, est connu pour sa politique basée sur le concept de...", o:["L'Ujamaa (socialisme communautaire)","La Négritude","L'Ubuntu","Le panafricanisme"], a:0},
+      {q:"Steve Biko, figure du mouvement de conscience noire en Afrique du Sud, est mort en 1977 dans quelles circonstances ?", o:["En détention policière","Lors d'un attentat","En exil","Lors d'une manifestation pacifique non violente"], a:0},
+      {q:"Bell Hooks, autrice et théoricienne féministe afro-américaine, est notamment connue pour ses travaux sur...", o:["L'intersection entre race, genre et classe sociale","La physique quantique","L'histoire coloniale française","La linguistique bantoue"], a:0},
+      {q:"Kwame Ture (Stokely Carmichael), militant panafricaniste, a popularisé quel slogan emblématique en 1966 ?", o:["« Black Power »","« I Have a Dream »","« Ubuntu »","« Black is Beautiful »"], a:0},
+      {q:"Aimé Césaire a été maire de quelle ville martiniquaise pendant plus de 50 ans ?", o:["Fort-de-France","Le Lamentin","Schoelcher","Sainte-Marie"], a:0},
+      {q:"Frantz Fanon a exercé son métier de psychiatre principalement dans quel pays, où il a rejoint la lutte pour l'indépendance ?", o:["Algérie","Maroc","Tunisie","Sénégal"], a:0},
+      {q:"Maryse Condé a reçu en 2018 quel prix littéraire alternatif, créé après l'annulation du Nobel de littérature cette année-là ?", o:["Le New Academy Prize in Literature","Le Prix Goncourt","Le Booker Prize","Le Prix Femina"], a:0},
+      {q:"Quel mouvement littéraire et politique Aimé Césaire, Senghor et Damas ont-ils fondé dans les années 1930 à Paris ?", o:["La Négritude","Le surréalisme africain","Le panafricanisme littéraire","Le créolisme"], a:0}
+    ]
+  },
+  sport: { name:"Sport", icon:"🏆", color:"var(--cobalt)",
+    debutant:[
+      {q:"Usain Bolt a établi ses records sur quelle distance principalement ?", o:["100m et 200m","400m et 800m","Marathon","110m haies"], a:0},
+      {q:"Quel pays africain a été le premier à atteindre les quarts de finale d'une Coupe du monde (1990) ?", o:["Cameroun","Nigeria","Sénégal","Ghana"], a:0},
+      {q:"La sélection de football de la Jamaïque est surnommée...", o:["Reggae Boyz","Soca Warriors","Super Eagles","Lions Indomptables"], a:0},
+      {q:"Teddy Riner, champion olympique multiple, pratique quel sport ?", o:["Judo","Boxe","Athlétisme","Natation"], a:0},
+      {q:"Le pays des « Soca Warriors » en football est...", o:["Trinité-et-Tobago","Barbade","Jamaïque","Haïti"], a:0},
+      {q:"Quel pays africain a organisé la toute première Coupe d'Afrique des Nations en 1957 ?", o:["Soudan","Égypte","Éthiopie","Afrique du Sud"], a:0},
+      {q:"Pelé, considéré comme l'un des plus grands footballeurs de l'histoire, est originaire de quel pays ?", o:["Brésil","Argentine","Portugal","Uruguay"], a:0},
+      {q:"Kylian Mbappé, star du football français, a des origines...", o:["Camerounaises et algériennes","Sénégalaises et marocaines","Ivoiriennes et tunisiennes","Maliennes et égyptiennes"], a:0},
+      {q:"Quel sport Simone Biles, multiple championne olympique afro-américaine, pratique-t-elle ?", o:["La gymnastique","La natation","L'athlétisme","Le patinage artistique"], a:0},
+      {q:"Quel pays a remporté la Coupe du monde de football en 2018, avec de nombreux joueurs d'origine africaine ?", o:["France","Croatie","Belgique","Angleterre"], a:0},
+      {q:"N'Golo Kanté, milieu de terrain emblématique, est d'origine...", o:["Malienne","Sénégalaise","Ivoirienne","Camerounaise"], a:0},
+      {q:"Anthony Joshua, champion du monde des poids lourds, est un boxeur jamaïcain-...", o:["Britannique","Américain","Canadien","Français"], a:0},
+      {q:"Haile Gebrselassie est une légende de quelle discipline sportive éthiopienne ?", o:["La course de fond","Le saut en hauteur","Le lancer de javelot","La natation"], a:0},
+      {q:"Le Kenya et l'Éthiopie dominent traditionnellement quelle discipline olympique ?", o:["Les courses de fond","Les lancers","Les sauts","Les sprints courts"], a:0},
+      {q:"Quel joueur de basket-ball né au Cameroun est une star actuelle de la NBA et a remporté un titre de MVP ?", o:["Joel Embiid","Pascal Siakam","Serge Ibaka","Luol Deng"], a:0}
+    ],
+    confirme:[
+      {q:"Shelly-Ann Fraser-Pryce, sprinteuse multi-championne olympique, est originaire de...", o:["Jamaïque","Bahamas","Trinidad","Barbade"], a:0},
+      {q:"En quelle année le Sénégal a-t-il atteint les quarts de finale de la Coupe du monde ?", o:["2002","2006","2010","2018"], a:0},
+      {q:"Quel boxeur légendaire a explicitement relié son identité à l'Afrique et aux droits civiques ?", o:["Mohamed Ali","Mike Tyson","George Foreman","Joe Frazier"], a:0},
+      {q:"« Les Lions Indomptables » est le surnom de l'équipe nationale de football de...", o:["Cameroun","Nigeria","Côte d'Ivoire","Sénégal"], a:0},
+      {q:"Kirani James, champion olympique du 400m, est originaire de quelle île ?", o:["Grenade","Sainte-Lucie","Dominique","Barbade"], a:0},
+      {q:"Quel pays a remporté la toute première Coupe d'Afrique des Nations en 1957 ?", o:["Égypte","Soudan","Éthiopie","Afrique du Sud"], a:0},
+      {q:"Quel pays africain a remporté la Coupe du monde de rugby à plusieurs reprises (2007, 2019, 2023) ?", o:["Afrique du Sud","Kenya","Namibie","Zimbabwe"], a:0},
+      {q:"Siya Kolisi est devenu en 2019 le premier capitaine noir à mener quelle équipe au titre de champion du monde ?", o:["L'équipe d'Afrique du Sud de rugby","L'équipe du Kenya de rugby","L'équipe du Zimbabwe de rugby","L'équipe de Namibie de rugby"], a:0},
+      {q:"Quel sprinteur jamaïcain a détenu le record du monde du 100m avant Usain Bolt ?", o:["Asafa Powell","Yohan Blake","Nesta Carter","Michael Frater"], a:0},
+      {q:"Yohan Blake, sprinteur jamaïcain, est surnommé...", o:["« The Beast »","« The Lightning »","« The Rocket »","« The Cheetah »"], a:0},
+      {q:"L'équipe féminine du Nigeria, les Super Falcons, domine largement quelle compétition continentale ?", o:["La Coupe d'Afrique des Nations féminine","La Coupe du monde féminine","Les Jeux olympiques féminins","La Ligue des champions féminine"], a:0},
+      {q:"Eliud Kipchoge, marathonien légendaire, est originaire de quel pays ?", o:["Kenya","Éthiopie","Ouganda","Tanzanie"], a:0},
+      {q:"En 2019, Eliud Kipchoge a été le premier homme à courir un marathon (hors compétition officielle) en moins de...", o:["2 heures","2h15","2h30","1h45"], a:0},
+      {q:"Quel joueur camerounais, révélation de la Coupe du monde 1990, est resté célèbre pour sa danse au poteau de corner ?", o:["Roger Milla","Samuel Eto'o","Patrick Mboma","Rigobert Song"], a:0},
+      {q:"Quel est le surnom de l'équipe nationale de football du Sénégal ?", o:["Les Lions de la Teranga","Les Éléphants","Les Black Stars","Les Super Eagles"], a:0}
+    ],
+    connaisseur:[
+      {q:"Bruny Surin, sprinteur médaillé olympique canadien, est d'origine...", o:["Haïtienne","Jamaïcaine","Sénégalaise","Camerounaise"], a:0},
+      {q:"Quel pays africain a organisé la Coupe du monde de football pour la première fois en 2010 ?", o:["Afrique du Sud","Maroc","Égypte","Nigeria"], a:0},
+      {q:"Merlene Ottey, sprinteuse aux nombreuses médailles olympiques, est originaire de...", o:["Jamaïque","Bahamas","Barbade","Trinidad"], a:0},
+      {q:"Didier Drogba a joué la majeure partie de sa carrière européenne dans quel club anglais ?", o:["Chelsea","Arsenal","Liverpool","Manchester United"], a:0},
+      {q:"Quel pays a dominé le 4x100m masculin olympique grâce à Bolt, Blake et Carter ?", o:["Jamaïque","Trinidad","Bahamas","Cuba"], a:0},
+      {q:"Quel athlète éthiopien, champion olympique du marathon à Rome en 1960 en courant pieds nus, est une légende du sport ?", o:["Abebe Bikila","Haile Gebrselassie","Kenenisa Bekele","Mo Farah"], a:0},
+      {q:"Abebe Bikila a remporté un second titre olympique du marathon en 1964, dans quelle ville ?", o:["Tokyo","Mexico","Munich","Rome"], a:0},
+      {q:"Quelle nation domine traditionnellement le steeple (3000m steeple) olympique depuis 1968 ?", o:["Kenya","Éthiopie","Ouganda","Maroc"], a:0},
+      {q:"Quel joueur libérien a remporté le Ballon d'Or en 1995, seul joueur africain à ce jour à l'avoir obtenu ?", o:["George Weah","Samuel Eto'o","Didier Drogba","Yaya Touré"], a:0},
+      {q:"George Weah est devenu en 2018 président de quel pays, après sa carrière de footballeur ?", o:["Libéria","Ghana","Côte d'Ivoire","Sénégal"], a:0},
+      {q:"Hicham El Guerrouj, détenteur du record du monde du 1500m, est originaire de quel pays ?", o:["Maroc","Algérie","Tunisie","Égypte"], a:0},
+      {q:"Kip Keino, pionnier olympique kényan (1968, 1972), a marqué le début de la domination de son pays dans quelle discipline ?", o:["Le demi-fond et le fond","Les sprints courts","Les sauts","Les lancers"], a:0},
+      {q:"Quel est le surnom de l'équipe nationale de football de Côte d'Ivoire ?", o:["Les Éléphants","Les Lions","Les Aigles","Les Panthères"], a:0},
+      {q:"Quel est le surnom de l'équipe nationale de football du Ghana ?", o:["Les Black Stars","Les Super Eagles","Les Lions de l'Atlas","Les Éléphants"], a:0},
+      {q:"Quel est le surnom de l'équipe nationale de football du Nigeria ?", o:["Les Super Eagles","Les Black Stars","Les Lions Indomptables","Les Étalons"], a:0}
+    ]
+  },
+  cinema: { name:"Cinéma & Séries", icon:"🎬", color:"var(--coral)",
+    debutant:[
+      {q:"« Black Panther » se déroule dans quel pays fictif africain ?", o:["Wakanda","Zamunda","Genovia","Sokovia"], a:0},
+      {q:"Quelle industrie cinématographique nigériane est la 2e plus productive au monde en nombre de films ?", o:["Nollywood","Bollywood","Cinecittà","Riverwood"], a:0},
+      {q:"« Coming to America » se déroule en partie dans quel pays africain fictif ?", o:["Zamunda","Wakanda","Genovia","Kadara"], a:0},
+      {q:"Quel film d'animation Disney se déroule en Louisiane créole ?", o:["La Princesse et la Grenouille","Encanto","Vaiana","Coco"], a:0},
+      {q:"Qui a réalisé « Black Panther » (2018) ?", o:["Ryan Coogler","Jordan Peele","Spike Lee","Barry Jenkins"], a:0},
+      {q:"Qui incarne T'Challa / Black Panther dans le film Marvel ?", o:["Chadwick Boseman","Michael B. Jordan","John Kani","John Boyega"], a:0},
+      {q:"Qui joue le rôle principal dans « Coming to America » ?", o:["Eddie Murphy","Denzel Washington","Will Smith","Chris Rock"], a:0},
+      {q:"Qui incarne Shuri dans l'univers Black Panther ?", o:["Letitia Wright","Lupita Nyong'o","Danai Gurira","Angela Bassett"], a:0},
+      {q:"Qui a réalisé « Girls Trip » (2017) ?", o:["Malcolm D. Lee","Tyler Perry","Ava DuVernay","Jordan Peele"], a:0},
+      {q:"Qui joue un rôle principal dans « Girls Trip » aux côtés de Regina Hall ?", o:["Tiffany Haddish","Issa Rae","Taraji P. Henson","Gabrielle Union"], a:0},
+      {q:"Qui a créé et interprète le rôle principal dans la série « Insecure » ?", o:["Issa Rae","Tracee Ellis Ross","Yvonne Orji","Zazie Beetz"], a:0},
+      {q:"Dans quelle ville se déroule principalement la série « Insecure » ?", o:["Los Angeles","New York","Atlanta","Chicago"], a:0},
+      {q:"Qui a réalisé « Moonlight », Oscar du meilleur film 2017 ?", o:["Barry Jenkins","Jordan Peele","Ryan Coogler","Steve McQueen"], a:0},
+      {q:"Qui incarne Erik Killmonger dans « Black Panther » ?", o:["Michael B. Jordan","Winston Duke","Daniel Kaluuya","Sterling K. Brown"], a:0},
+      {q:"Qui incarne James Brown dans le biopic « Get on Up » (2014) ?", o:["Chadwick Boseman","Jamie Foxx","Don Cheadle","Eddie Murphy"], a:0}
+    ],
+    confirme:[
+      {q:"« Rue Cases-Nègres » (Sugar Cane Alley) se déroule dans quelle île ?", o:["Martinique","Guadeloupe","Haïti","Trinidad"], a:0},
+      {q:"Qui a réalisé « Rue Cases-Nègres » ?", o:["Euzhan Palcy","Ava DuVernay","Mati Diop","Claire Denis"], a:0},
+      {q:"En quelle année « Rue Cases-Nègres » est-il sorti au cinéma ?", o:["1983","1975","1990","1968"], a:0},
+      {q:"Qui a réalisé « Do the Right Thing » (1989) ?", o:["Spike Lee","John Singleton","Barry Jenkins","Steve McQueen"], a:0},
+      {q:"Dans quel quartier de New York se déroule « Do the Right Thing » ?", o:["Brooklyn","Harlem","Le Bronx","Queens"], a:0},
+      {q:"Qui a réalisé « Malcolm X » (1992) ?", o:["Spike Lee","John Singleton","Antoine Fuqua","Lee Daniels"], a:0},
+      {q:"Qui incarne Malcolm X dans le film éponyme de Spike Lee ?", o:["Denzel Washington","Forest Whitaker","Don Cheadle","Idris Elba"], a:0},
+      {q:"Qui a réalisé « Selma » (2014), sur Martin Luther King ?", o:["Ava DuVernay","Lee Daniels","Steve McQueen","Barry Jenkins"], a:0},
+      {q:"Qui interprète Martin Luther King Jr. dans « Selma » ?", o:["David Oyelowo","Chiwetel Ejiofor","Chadwick Boseman","Idris Elba"], a:0},
+      {q:"Qui a créé la série « Queen Sugar » ?", o:["Ava DuVernay","Shonda Rhimes","Issa Rae","Lena Waithe"], a:0},
+      {q:"Dans quel État américain se déroule la série « Queen Sugar » ?", o:["Louisiane","Géorgie","Texas","Mississippi"], a:0},
+      {q:"Quel documentaire de Spike Lee (1997) traite de l'attentat de l'église de Birmingham en 1963 ?", o:["4 Little Girls","When the Levees Broke","BlacKkKlansman","Bamboozled"], a:0},
+      {q:"Qui a réalisé « Fruitvale Station » (2013), son tout premier long-métrage ?", o:["Ryan Coogler","Barry Jenkins","Jordan Peele","Steven Caple Jr."], a:0},
+      {q:"Qui incarne le rôle principal dans « Girlfriends » (série culte des années 2000) ?", o:["Tracee Ellis Ross","Yvonne Orji","Gabrielle Union","Regina King"], a:0},
+      {q:"Sur quelle chaîne la série « Girlfriends » a-t-elle été diffusée à l'origine ?", o:["UPN","NBC","HBO","ABC"], a:0}
+    ],
+    connaisseur:[
+      {q:"Quelle réalisatrice sénégalaise a remporté le Grand Prix à Cannes en 2019 pour « Atlantique » ?", o:["Mati Diop","Alice Diop","Rama Thiaw","Dyana Gaye"], a:0},
+      {q:"« La Noire de... » (1966), 1er long-métrage africain reconnu internationalement, a été réalisé par...", o:["Ousmane Sembène","Djibril Diop Mambéty","Med Hondo","Souleymane Cissé"], a:0},
+      {q:"« Timbuktu » (2014), nommé aux Oscars, a été réalisé par un cinéaste originaire de quel pays ?", o:["Mauritanie","Mali","Sénégal","Tchad"], a:0},
+      {q:"Qui a réalisé « Touki Bouki » (1973), film culte du cinéma sénégalais ?", o:["Djibril Diop Mambéty","Ousmane Sembène","Souleymane Cissé","Med Hondo"], a:0},
+      {q:"Mati Diop est la nièce de quel réalisateur sénégalais, lui aussi cinéaste culte ?", o:["Djibril Diop Mambéty","Ousmane Sembène","Souleymane Cissé","Idrissa Ouédraogo"], a:0},
+      {q:"Qui a réalisé « Hyènes » (1992), adaptation africaine de « La Visite de la vieille dame » ?", o:["Djibril Diop Mambéty","Ousmane Sembène","Souleymane Cissé","Abderrahmane Sissako"], a:0},
+      {q:"Quel film d'Ousmane Sembène (1968) critique la bureaucratie post-coloniale à travers une histoire de dot ?", o:["Mandabi","Xala","Ceddo","Camp de Thiaroye"], a:0},
+      {q:"Qui a réalisé « Yeelen » (1987), premier film ouest-africain primé à Cannes ?", o:["Souleymane Cissé","Idrissa Ouédraogo","Ousmane Sembène","Med Hondo"], a:0},
+      {q:"Quel prix a remporté « Yeelen » au Festival de Cannes 1987 ?", o:["Prix du Jury","Palme d'or","Prix de la mise en scène","Grand Prix"], a:0},
+      {q:"Qui a réalisé « Hale County This Morning, This Evening », documentaire nommé aux Oscars en 2019 ?", o:["RaMell Ross","Barry Jenkins","Dee Rees","Garrett Bradley"], a:0},
+      {q:"Quel film d'Idrissa Ouédraogo a remporté le Grand Prix à Cannes en 1990 ?", o:["Tilaï","Yaaba","Yeelen","Samba Traoré"], a:0},
+      {q:"Idrissa Ouédraogo, réalisateur de « Tilaï », est originaire de quel pays ?", o:["Burkina Faso","Mali","Sénégal","Niger"], a:0},
+      {q:"Quel film d'Abderrahmane Sissako (2006) met en scène un procès fictif contre la Banque mondiale ?", o:["Bamako","Timbuktu","Heremakono","La Vie sur Terre"], a:0},
+      {q:"Quel festival panafricain de cinéma se tient tous les deux ans à Ouagadougou (Burkina Faso) ?", o:["FESPACO","Cannes Afrique","AfriCannes","Ouaga Film Fest"], a:0},
+      {q:"Que signifie le sigle FESPACO ?", o:["Festival Panafricain du Cinéma de Ouagadougou","Fédération Sénégalaise du Cinéma d'Ouagadougou","Festival Spécial du Cinéma Africain","Forum Européen du Cinéma Africain"], a:0}
+    ]
+  }
+};
+
+const LEVEL_LABELS = {debutant:"Débutant", confirme:"Confirmé", connaisseur:"Connaisseur"};
+
+let appMode = 'solo';
+let timerInterval = null;
+let autoAdvanceTimeout = null;
+let timeLeft = 20;
+let selectedManches = 1;
+const QUESTION_TIME = 20;
+
+let state = {
+  categoryKey: null,
+  categoryName: "",
+  categoryColor: "var(--sun-gold)",
+  level: null,
+  questions: [],
+  index: 0,
+  score: 0,
+  answered: false,
+  revealed: false,
+  players: [],
+  manchesTotal: 1,
+  mancheIndex: 1
+};
+
+/* ===== Ambiance sonore : petit rythme généré (aucun fichier audio, 100% synthétisé) ===== */
+let audioCtx = null;
+let musicPlaying = false;
+let musicIntervalId = null;
+let musicStep = 0;
+
+function playKick(t){
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.frequency.setValueAtTime(140, t);
+  o.frequency.exponentialRampToValueAtTime(45, t+0.15);
+  g.gain.setValueAtTime(0.7, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.22);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+0.22);
+}
+function playHihat(t, open){
+  const bufferSize = Math.floor(audioCtx.sampleRate * (open ? 0.12 : 0.045));
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(open ? 0.12 : 0.09, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+(open?0.12:0.045));
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 7500;
+  noise.connect(hp); hp.connect(g); g.connect(audioCtx.destination);
+  noise.start(t);
+}
+function playClap(t){
+  const bufferSize = Math.floor(audioCtx.sampleRate * 0.12);
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.22, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.12);
+  const bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 1400;
+  noise.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
+  noise.start(t);
+}
+function playBassNote(t, freq){
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.18, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t+0.18);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+0.18);
+}
+function playMusicStep(){
+  const t = audioCtx.currentTime;
+  const s = musicStep % 16;
+  if(s % 8 === 0) playKick(t);
+  if(s % 8 === 6) playKick(t);
+  if(s % 4 === 2) playClap(t);
+  if(s % 2 === 1) playHihat(t, s === 15);
+  const bassNotes = [98, 98, 110, 98, 87, 98, 110, 98];
+  if(s % 2 === 0) playBassNote(t, bassNotes[(s/2) % bassNotes.length]);
+  musicStep++;
+}
+function toggleMusic(){
+  const btn = document.getElementById('music-toggle-btn');
+  if(musicPlaying){
+    clearInterval(musicIntervalId);
+    musicPlaying = false;
+    btn.textContent = '🔇 Musique';
+  } else {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume();
+    musicPlaying = true;
+    btn.textContent = '🔊 Musique';
+    const bpm = 104;
+    const stepTime = (60000/bpm)/4;
+    musicStep = 0;
+    playMusicStep();
+    musicIntervalId = setInterval(playMusicStep, stepTime);
+  }
+}
+document.getElementById('music-toggle-btn').addEventListener('click', toggleMusic);
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function showScreen(id){
+  if(id !== 'screen-quiz') stopTimer();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id === 'screen-categories') updateGroupStatus();
+}
+
+function updateGroupStatus(){
+  const el = document.getElementById('group-status');
+  if(!el) return;
+  if(appMode === 'group' && state.players.length){
+    el.textContent = `👥 ${state.players.length} joueurs · Manche ${state.mancheIndex}/${state.manchesTotal}`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function burstConfetti(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['var(--sun-gold)','var(--hibiscus)','var(--emerald)','var(--teal)','var(--magenta)','var(--cobalt)','var(--coral)'];
+  for(let i=0;i<24;i++){
+    const el = document.createElement('div');
+    el.className='confetti-piece';
+    el.style.left = Math.random()*100+'%';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (0.8+Math.random()*0.6)+'s';
+    el.style.animationDelay = (Math.random()*0.15)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=> el.remove(), 1700);
+  }
+}
+
+function ambientConfettiTick(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['var(--sun-gold)','var(--hibiscus)','var(--emerald)','var(--teal)','var(--magenta)','var(--cobalt)','var(--coral)'];
+  const el = document.createElement('div');
+  el.className='confetti-piece';
+  el.style.left = Math.random()*100+'%';
+  el.style.background = colors[Math.floor(Math.random()*colors.length)];
+  el.style.opacity = '0.5';
+  el.style.width = '6px';
+  el.style.height = '10px';
+  el.style.animationDuration = (3+Math.random()*2)+'s';
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 5200);
+}
+setInterval(ambientConfettiTick, 900);
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft = QUESTION_TIME;
+  updateTimerUI();
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    updateTimerUI();
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      handleTimeout();
+    }
+  }, 1000);
+}
+function stopTimer(){ clearInterval(timerInterval); }
+function updateTimerUI(){
+  const fill = document.getElementById('timer-fill');
+  const text = document.getElementById('timer-text');
+  if(!fill || !text) return;
+  const pct = Math.max(0, (timeLeft/QUESTION_TIME)*100);
+  fill.style.width = pct + '%';
+  text.textContent = Math.max(0,timeLeft) + 's';
+  fill.classList.remove('warning','danger');
+  if(timeLeft <= 5) fill.classList.add('danger');
+  else if(timeLeft <= 10) fill.classList.add('warning');
+}
+
+function handleTimeout(){
+  if(appMode === 'group'){
+    if(!state.revealed) revealGroupAnswer();
+    return;
+  }
+  if(state.answered) return;
+  state.answered = true;
+  const q = state.questions[state.index];
+  const allBtns = document.querySelectorAll('.answer-btn');
+  allBtns.forEach(b=>{
+    b.disabled = true;
+    if(b.dataset.correct === '1') b.classList.add('correct');
+  });
+  document.getElementById('feedback').textContent = `⏱️ Temps écoulé ! La bonne réponse était : « ${q.o[q.a]} »`;
+  document.getElementById('next-btn').classList.add('show');
+  scheduleAutoAdvance();
+}
+
+function scheduleAutoAdvance(){
+  clearTimeout(autoAdvanceTimeout);
+  autoAdvanceTimeout = setTimeout(()=> goNextQuestion(), 10000);
+}
+
+document.querySelectorAll('.mode-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    appMode = b.dataset.mode;
+    if(appMode === 'group'){
+      if(firebaseReady){
+        document.getElementById('lobby-online-block').style.display = 'block';
+        document.getElementById('lobby-local-block').style.display = 'none';
+        createLobby();
+      } else {
+        document.getElementById('lobby-online-block').style.display = 'none';
+        document.getElementById('lobby-local-block').style.display = 'block';
+        state.players = [];
+        renderPlayerInputs();
+        showScreen('screen-group-setup');
+      }
+    } else {
+      updateGroupStatus();
+    }
+  });
+});
+
+const catGrid = document.getElementById('cat-grid');
+Object.entries(QUIZ_DATA).forEach(([key, cat])=>{
+  const btn = document.createElement('button');
+  btn.className = 'cat-card';
+  btn.innerHTML = `<span class="icon" style="background:${cat.color}">${cat.icon}</span>${cat.name}`;
+  btn.addEventListener('click', ()=> selectCategory(key, cat.name, cat.color));
+  catGrid.appendChild(btn);
+});
+const mixBtn = document.createElement('button');
+mixBtn.className = 'cat-card mix';
+mixBtn.innerHTML = `<span class="icon">🌍</span>Mix — Tout mélangé`;
+mixBtn.addEventListener('click', ()=> selectCategory('mix', 'Mix — Tout mélangé', 'var(--sun-gold)'));
+catGrid.appendChild(mixBtn);
+
+function selectCategory(key, name, color){
+  state.categoryKey = key;
+  state.categoryName = name;
+  state.categoryColor = color;
+  document.getElementById('chip-category').textContent = name;
+  showScreen('screen-levels');
+}
+
+document.getElementById('back-to-categories').addEventListener('click', ()=> showScreen('screen-categories'));
+
+document.querySelectorAll('.level-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(appMode === 'host'){ showQR(btn.dataset.level); }
+    else { startQuiz(btn.dataset.level); }
+  });
+});
+
+/* ===== Group lobby (live join via Firebase) ===== */
+let currentRoomId = null;
+let lobbyPlayersRef = null;
+let myPlayerKey = null;
+
+function generateRoomId(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id = '';
+  for(let i=0;i<5;i++) id += chars[Math.floor(Math.random()*chars.length)];
+  return id;
+}
+
+function createLobby(){
+  currentRoomId = generateRoomId();
+  db.ref('rooms/'+currentRoomId).set({ createdAt: Date.now(), status:'lobby' });
+  state.players = [];
+  renderLobbyQR();
+  listenToLobbyPlayers(renderLobbyPlayerList);
+  showScreen('screen-group-setup');
+}
+
+function renderLobbyQR(){
+  const url = new URL(window.location.href.split('?')[0]);
+  url.searchParams.set('room', currentRoomId);
+  url.searchParams.set('join', '1');
+  document.getElementById('lobby-link').value = url.toString();
+  const qrContainer = document.getElementById('lobby-qrcode');
+  qrContainer.innerHTML = '';
+  try{
+    new QRCode(qrContainer, { text:url.toString(), width:200, height:200, colorDark:"#1F1B3D", colorLight:"#FFF7EA", correctLevel:QRCode.CorrectLevel.M });
+  }catch(e){}
+}
+
+function listenToLobbyPlayers(onUpdate){
+  if(lobbyPlayersRef) lobbyPlayersRef.off();
+  lobbyPlayersRef = db.ref('rooms/'+currentRoomId+'/players');
+  lobbyPlayersRef.on('value', snap=>{
+    const data = snap.val() || {};
+    state.players = Object.entries(data).map(([key,p])=> ({key, name:p.name, score:p.score||0}));
+    onUpdate();
+  });
+}
+
+function renderLobbyPlayerList(){
+  const wrap = document.getElementById('lobby-player-list');
+  wrap.innerHTML = state.players.length
+    ? state.players.map(p=> `<span class="player-chip" style="cursor:default;">${p.name}</span>`).join('')
+    : '<p style="opacity:0.85;">En attente de joueurs... 👀</p>';
+  document.getElementById('lobby-count').textContent = state.players.length;
+}
+
+document.getElementById('lobby-copy-btn').addEventListener('click', ()=>{
+  const input = document.getElementById('lobby-link');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  const btn = document.getElementById('lobby-copy-btn');
+  const original = btn.textContent;
+  navigator.clipboard && navigator.clipboard.writeText(input.value).then(()=>{
+    btn.textContent = 'Copié ! ✓';
+    setTimeout(()=> btn.textContent = original, 1500);
+  }).catch(()=>{
+    document.execCommand('copy');
+    btn.textContent = 'Copié ! ✓';
+    setTimeout(()=> btn.textContent = original, 1500);
+  });
+});
+
+/* ===== Local (same-screen) player entry — used when Firebase isn't configured ===== */
+function renderPlayerInputs(){
+  const wrap = document.getElementById('player-inputs');
+  wrap.innerHTML = '';
+  addPlayerRow('');
+  addPlayerRow('');
+}
+function addPlayerRow(name){
+  const wrap = document.getElementById('player-inputs');
+  if(wrap.children.length >= 8) return;
+  const row = document.createElement('div');
+  row.className = 'player-row';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'player-name-input';
+  input.placeholder = `Joueur ${wrap.children.length+1}`;
+  input.value = name || '';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-player-btn';
+  removeBtn.textContent = '✕';
+  removeBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(wrap.children.length > 2) row.remove();
+  });
+  row.appendChild(input);
+  row.appendChild(removeBtn);
+  wrap.appendChild(row);
+}
+document.getElementById('add-player-btn').addEventListener('click', (e)=>{
+  e.preventDefault();
+  addPlayerRow('');
+});
+
+document.querySelectorAll('.manche-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.manche-btn').forEach(x=> x.classList.remove('chosen'));
+    b.classList.add('chosen');
+    selectedManches = parseInt(b.dataset.manches, 10);
+  });
+});
+
+document.getElementById('group-start-btn').addEventListener('click', ()=>{
+  if(firebaseReady && currentRoomId){
+    if(state.players.length < 1){
+      alert('Attends qu\'au moins un·e joueur·se rejoigne la salle (fais-le·la scanner le QR) !');
+      return;
+    }
+    if(currentRoomId) db.ref('rooms/'+currentRoomId+'/status').set('playing');
+  } else {
+    const inputs = document.querySelectorAll('.player-name-input');
+    const names = [...inputs].map(i=> i.value.trim()).filter(Boolean);
+    if(names.length < 2){
+      alert('Ajoute au moins 2 joueurs pour commencer !');
+      return;
+    }
+    state.players = names.map(n=> ({name:n, score:0}));
+  }
+  state.manchesTotal = selectedManches;
+  state.mancheIndex = 1;
+  showScreen('screen-categories');
+});
+document.getElementById('group-back-btn').addEventListener('click', ()=>{
+  appMode = 'solo';
+  if(lobbyPlayersRef){ lobbyPlayersRef.off(); lobbyPlayersRef = null; }
+  currentRoomId = null;
+  document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b.dataset.mode==='solo'));
+  showScreen('screen-categories');
+});
+
+/* ===== Join flow (scanned devices) ===== */
+let joinRoomId = null;
+let joinPlayersRef = null;
+
+function showJoinScreen(roomId){
+  joinRoomId = roomId;
+  showScreen('screen-join');
+}
+document.getElementById('join-submit-btn').addEventListener('click', ()=>{
+  const input = document.getElementById('join-name-input');
+  const name = input.value.trim();
+  if(!name){ input.focus(); return; }
+  const ref = db.ref('rooms/'+joinRoomId+'/players').push();
+  ref.set({ name, score:0, joinedAt: Date.now() });
+  myPlayerKey = ref.key;
+  showJoinWaitingScreen();
+});
+let myLastAnsweredIndex = -1;
+function showJoinWaitingScreen(){
+  if(joinPlayersRef) joinPlayersRef.off();
+  joinPlayersRef = db.ref('rooms/'+joinRoomId+'/players');
+  joinPlayersRef.on('value', snap=>{
+    const data = snap.val() || {};
+    const players = Object.entries(data).map(([key,p])=> ({key, name:p.name, score:p.score||0}))
+      .sort((a,b)=> b.score - a.score);
+    const wrap = document.getElementById('join-player-list');
+    wrap.innerHTML = players.map(p=> `<span class="player-chip" style="cursor:default;">${p.name}${p.key===myPlayerKey?' (toi)':''} · ${p.score} pt${p.score>1?'s':''}</span>`).join('');
+  });
+  db.ref('rooms/'+joinRoomId+'/status').on('value', snap=>{
+    if(snap.val() === 'playing'){
+      document.getElementById('join-waiting-hint').textContent = "🎮 La partie a commencé — réponds ci-dessous !";
+    }
+  });
+  db.ref('rooms/'+joinRoomId+'/currentQuestion').on('value', snap=>{
+    const q = snap.val();
+    const card = document.getElementById('mirror-question-card');
+    const answersEl = document.getElementById('mirror-answers');
+    const feedbackEl = document.getElementById('mirror-feedback');
+    if(!q){
+      card.style.display = 'none';
+      answersEl.innerHTML = '';
+      return;
+    }
+    if(q.index !== myLastAnsweredIndex){
+      // fresh question: reset UI
+    }
+    const alreadyAnsweredThis = (q.answers && myPlayerKey && q.answers[myPlayerKey] !== undefined);
+    card.style.display = 'block';
+    document.getElementById('mirror-eyebrow').textContent = `${q.cat || ''} · ${q.index+1}/${q.total}`;
+    document.getElementById('mirror-qtext').textContent = q.text || '';
+    answersEl.innerHTML = '';
+    feedbackEl.textContent = '';
+    (q.options||[]).forEach((optText, i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      const span = document.createElement('span');
+      span.className = 'ans-text';
+      span.textContent = optText;
+      btn.appendChild(span);
+      const myChoice = alreadyAnsweredThis ? q.answers[myPlayerKey].choiceIndex : null;
+      if(q.revealed){
+        btn.disabled = true;
+        if(optText === q.correctText){ btn.classList.add('correct'); }
+        else { btn.classList.add('dimmed'); }
+        if(myChoice === i && optText !== q.correctText){ btn.classList.add('wrong'); }
+      } else if(alreadyAnsweredThis){
+        btn.disabled = true;
+        if(myChoice === i){ btn.style.outline = '3px solid #FFFFFF'; }
+        else { btn.classList.add('dimmed'); }
+      } else {
+        btn.addEventListener('click', ()=>{
+          if(!joinRoomId || !myPlayerKey) return;
+          db.ref('rooms/'+joinRoomId+'/currentQuestion/answers/'+myPlayerKey).set({ choiceIndex:i, at:Date.now() });
+        });
+      }
+      answersEl.appendChild(btn);
+    });
+    if(q.revealed){
+      if(alreadyAnsweredThis){
+        const myChoiceText = q.options[q.answers[myPlayerKey].choiceIndex];
+        feedbackEl.textContent = (myChoiceText === q.correctText) ? '✅ Bien joué !' : `La bonne réponse était : « ${q.correctText} »`;
+      } else {
+        feedbackEl.textContent = `⏱️ Tu n'as pas répondu à temps — la bonne réponse était : « ${q.correctText} »`;
+      }
+    } else if(alreadyAnsweredThis){
+      feedbackEl.textContent = '📨 Réponse envoyée, en attente des autres...';
+    }
+  });
+  showScreen('screen-join-waiting');
+}
+
+/* ===== QR / host ===== */
+function showQR(level){
+  state.level = level;
+  const url = new URL(window.location.href.split('?')[0]);
+  url.searchParams.set('cat', state.categoryKey);
+  url.searchParams.set('lvl', level);
+  document.getElementById('qr-recap').textContent = `${state.categoryName} · ${LEVEL_LABELS[level]}`;
+  document.getElementById('qr-link').value = url.toString();
+  const qrContainer = document.getElementById('qrcode');
+  qrContainer.innerHTML = '';
+  try{
+    new QRCode(qrContainer, {
+      text: url.toString(), width:220, height:220,
+      colorDark:"#1F1B3D", colorLight:"#FFF7EA", correctLevel: QRCode.CorrectLevel.M
+    });
+  }catch(e){
+    qrContainer.innerHTML = '<p style="color:#1F1B3D;font-weight:700;padding:20px;">QR code indisponible hors-ligne — utilise le lien ci-dessous.</p>';
+  }
+  showScreen('screen-qr');
+}
+document.getElementById('qr-back-btn').addEventListener('click', ()=> showScreen('screen-levels'));
+document.getElementById('play-here-btn').addEventListener('click', ()=> startQuiz(state.level));
+document.getElementById('copy-link-btn').addEventListener('click', ()=>{
+  const input = document.getElementById('qr-link');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  const btn = document.getElementById('copy-link-btn');
+  const original = btn.textContent;
+  navigator.clipboard && navigator.clipboard.writeText(input.value).then(()=>{
+    btn.textContent = 'Copié ! ✓';
+    setTimeout(()=> btn.textContent = original, 1500);
+  }).catch(()=>{
+    document.execCommand('copy');
+    btn.textContent = 'Copié ! ✓';
+    setTimeout(()=> btn.textContent = original, 1500);
+  });
+});
+
+/* ===== Quiz core ===== */
+function startQuiz(level){
+  state.level = level;
+  let pool = [];
+  if(state.categoryKey === 'mix'){
+    Object.values(QUIZ_DATA).forEach(cat=>{
+      cat[level].forEach(q=> pool.push({...q, cat:cat.name, color:cat.color}));
+    });
+    pool = shuffle(pool).slice(0,10);
+  } else {
+    const cat = QUIZ_DATA[state.categoryKey];
+    pool = cat[level].map(q=> ({...q, cat:cat.name, color:cat.color}));
+  }
+  state.questions = pool;
+  state.index = 0;
+  state.score = 0;
+  document.documentElement.style.setProperty('--cat-color', state.categoryKey==='mix' ? 'var(--sun-gold)' : state.categoryColor);
+  buildBeads();
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function buildBeads(){
+  const beads = document.getElementById('beads');
+  beads.innerHTML = '';
+  state.questions.forEach(()=>{
+    const b = document.createElement('div');
+    b.className = 'bead';
+    beads.appendChild(b);
+  });
+}
+function updateBeads(){
+  const beads = document.querySelectorAll('.bead');
+  beads.forEach((b,i)=>{ if(i < state.index) b.classList.add('filled'); });
+}
+
+function renderQuestion(){
+  state.answered = false;
+  state.revealed = false;
+  clearTimeout(autoAdvanceTimeout);
+  const q = state.questions[state.index];
+  document.getElementById('quiz-label').textContent = `${state.categoryName} · ${LEVEL_LABELS[state.level]}`;
+  document.getElementById('quiz-progress').textContent = `${state.index+1} / ${state.questions.length}`;
+  document.getElementById('q-eyebrow').textContent = q.cat || state.categoryName;
+  document.getElementById('q-eyebrow').style.setProperty('--cat-color', q.color || state.categoryColor);
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').classList.remove('show');
+  updateBeads();
+
+  const shuffledIdx = shuffle(q.o.map((_,i)=>i));
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = '';
+  shuffledIdx.forEach(origIdx=>{
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.dataset.correct = (origIdx === q.a) ? '1' : '0';
+    const textSpan = document.createElement('span');
+    textSpan.className = 'ans-text';
+    textSpan.textContent = q.o[origIdx];
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = 'ans-badge';
+    badgeSpan.setAttribute('aria-hidden','true');
+    btn.appendChild(textSpan);
+    btn.appendChild(badgeSpan);
+    if(appMode === 'group'){
+      btn.disabled = true;
+    } else {
+      btn.addEventListener('click', ()=> handleAnswer(btn, origIdx === q.a, q));
+    }
+    answersEl.appendChild(btn);
+  });
+
+  const revealWrap = document.getElementById('group-reveal-wrap');
+  revealWrap.classList.toggle('show', appMode === 'group');
+  document.getElementById('group-reveal-btn').classList.add('show');
+  document.getElementById('group-players-wrap').classList.remove('show');
+  document.getElementById('mini-leaderboard').classList.remove('show');
+  document.getElementById('mini-leaderboard').innerHTML = '';
+
+  if(appMode === 'group' && firebaseReady && currentRoomId){
+    db.ref('rooms/'+currentRoomId+'/currentQuestion').set({
+      cat: q.cat || state.categoryName,
+      text: q.q,
+      options: shuffledIdx.map(idx=> q.o[idx]),
+      correctText: q.o[q.a],
+      revealed: false,
+      index: state.index,
+      total: state.questions.length
+    });
+  }
+
+  startTimer();
+}
+
+function handleAnswer(btn, isCorrect, q){
+  if(state.answered) return;
+  stopTimer();
+  state.answered = true;
+  const allBtns = document.querySelectorAll('.answer-btn');
+  allBtns.forEach(b=> b.disabled = true);
+  const correctBtn = [...allBtns].find(b=> b.dataset.correct === '1');
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    state.score++;
+    document.getElementById('feedback').textContent = '✅ Bonne réponse ! 🎉';
+    burstConfetti();
+  } else {
+    btn.classList.add('wrong');
+    if(correctBtn) correctBtn.classList.add('correct');
+    document.getElementById('feedback').textContent = `La bonne réponse était : « ${q.o[q.a]} »`;
+  }
+  document.getElementById('next-btn').classList.add('show');
+  scheduleAutoAdvance();
+}
+
+document.getElementById('next-btn').addEventListener('click', goNextQuestion);
+
+function goNextQuestion(){
+  clearTimeout(autoAdvanceTimeout);
+  state.index++;
+  if(state.index >= state.questions.length){
+    if(appMode === 'group'){ finishManche(); }
+    else { showResult(); }
+  } else {
+    renderQuestion();
+  }
+}
+
+/* ===== Group reveal / scoring ===== */
+document.getElementById('group-reveal-btn').addEventListener('click', revealGroupAnswer);
+function revealGroupAnswer(){
+  if(state.revealed) return;
+  state.revealed = true;
+  stopTimer();
+  const q = state.questions[state.index];
+  document.querySelectorAll('.answer-btn').forEach(b=>{
+    if(b.dataset.correct === '1'){ b.classList.add('correct'); }
+    else { b.classList.add('dimmed'); }
+  });
+  document.getElementById('feedback').textContent = `✅ La bonne réponse était : « ${q.o[q.a]} »`;
+  document.getElementById('group-reveal-btn').classList.remove('show');
+
+  if(firebaseReady && currentRoomId){
+    db.ref('rooms/'+currentRoomId+'/currentQuestion/revealed').set(true);
+    scoreOnlineAnswers();
+  } else {
+    renderPlayerChips();
+    document.getElementById('group-players-wrap').classList.add('show');
+  }
+}
+function scoreOnlineAnswers(){
+  db.ref('rooms/'+currentRoomId+'/currentQuestion').once('value').then(snap=>{
+    const qData = snap.val() || {};
+    const answers = qData.answers || {};
+    const options = qData.options || [];
+    const correctText = qData.correctText;
+    const updates = {};
+    const correctNames = [];
+    Object.entries(answers).forEach(([key, ans])=>{
+      const player = state.players.find(p=> p.key === key);
+      if(!player) return;
+      const chosenText = options[ans.choiceIndex];
+      if(chosenText === correctText){
+        player.score++;
+        correctNames.push(player.name);
+        updates['rooms/'+currentRoomId+'/players/'+key+'/score'] = player.score;
+      }
+    });
+    if(Object.keys(updates).length) db.ref().update(updates);
+    const fb = document.getElementById('feedback');
+    if(correctNames.length){
+      fb.textContent = `✅ La bonne réponse était : « ${correctText} » — Bravo ${correctNames.join(', ')} ! 🎉`;
+    }
+    renderMiniLeaderboard();
+    document.getElementById('next-btn').classList.add('show');
+    scheduleAutoAdvance();
+  });
+}
+function renderPlayerChips(){
+  const wrap = document.getElementById('player-chips');
+  wrap.innerHTML = '';
+  state.players.forEach(p=>{
+    const chip = document.createElement('button');
+    chip.className = 'player-chip';
+    chip.textContent = p.name;
+    chip.dataset.key = p.key || p.name;
+    chip.addEventListener('click', ()=> chip.classList.toggle('selected'));
+    wrap.appendChild(chip);
+  });
+}
+document.getElementById('validate-round-btn').addEventListener('click', ()=>{
+  const chips = document.querySelectorAll('#player-chips .player-chip');
+  chips.forEach((chip)=>{
+    if(!chip.classList.contains('selected')) return;
+    const key = chip.dataset.key;
+    const player = state.players.find(p=> (p.key || p.name) === key);
+    if(player){
+      player.score++;
+      if(firebaseReady && currentRoomId && player.key){
+        db.ref('rooms/'+currentRoomId+'/players/'+player.key+'/score').set(player.score);
+      }
+    }
+  });
+  document.getElementById('group-players-wrap').classList.remove('show');
+  renderMiniLeaderboard();
+  document.getElementById('next-btn').classList.add('show');
+  scheduleAutoAdvance();
+});
+function renderMiniLeaderboard(){
+  const el = document.getElementById('mini-leaderboard');
+  const sorted = [...state.players].sort((a,b)=> b.score - a.score);
+  el.innerHTML = sorted.map((p,i)=>{
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    return `<div class="row"><span><span class="rank">${medal}</span>${p.name}</span><span>${p.score} pt${p.score>1?'s':''}</span></div>`;
+  }).join('');
+  el.classList.add('show');
+}
+
+/* ===== Solo result ===== */
+function showResult(){
+  document.querySelectorAll('.bead').forEach(b=> b.classList.add('filled'));
+  const total = state.questions.length;
+  const score = state.score;
+  const pct = score/total;
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-total').textContent = `/ ${total}`;
+
+  let title, msg;
+  if(pct >= 0.85){
+    title = "Connaisseur·se confirmé·e 👑";
+    msg = "Tes racines, tu les connais par cœur. Impressionnant niveau de culture !";
+    burstConfetti();
+  } else if(pct >= 0.6){
+    title = "Bien ancré·e dans tes racines 🌴";
+    msg = "Un très bon score ! Encore quelques détails à peaufiner et tu deviens incollable.";
+  } else if(pct >= 0.35){
+    title = "Tu retrouves le chemin 🌱";
+    msg = "Pas mal du tout, continue d'explorer — chaque quiz t'apprend un peu plus.";
+  } else {
+    title = "Le voyage commence 🧭";
+    msg = "Tout le monde commence quelque part. Retente ta chance, tu vas progresser vite !";
+  }
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-msg').textContent = msg;
+  showScreen('screen-result');
+}
+document.getElementById('retry-btn').addEventListener('click', ()=> startQuiz(state.level));
+document.getElementById('home-btn').addEventListener('click', ()=> showScreen('screen-categories'));
+
+/* ===== Manche result (group) ===== */
+function finishManche(){
+  stopTimer();
+  document.querySelectorAll('.bead').forEach(b=> b.classList.add('filled'));
+  const sorted = [...state.players].sort((a,b)=> b.score - a.score);
+  const isLast = state.mancheIndex >= state.manchesTotal;
+  document.getElementById('manche-title').textContent = isLast ? '🏆 Classement final' : `Fin de la manche ${state.mancheIndex}/${state.manchesTotal}`;
+  const list = document.getElementById('manche-ranking');
+  list.innerHTML = sorted.map((p,i)=>{
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    return `<div class="rank-row"><span class="rank-medal">${medal}</span><span class="rank-name">${p.name}</span><span class="rank-score">${p.score} pt${p.score>1?'s':''}</span></div>`;
+  }).join('');
+  document.getElementById('manche-next-btn').style.display = isLast ? 'none' : 'block';
+  document.getElementById('manche-final-actions').style.display = isLast ? 'flex' : 'none';
+  if(isLast) burstConfetti();
+  showScreen('screen-manche-result');
+}
+document.getElementById('manche-next-btn').addEventListener('click', ()=>{
+  state.mancheIndex++;
+  showScreen('screen-categories');
+});
+document.getElementById('manche-home-btn').addEventListener('click', ()=>{
+  appMode = 'solo';
+  if(lobbyPlayersRef){ lobbyPlayersRef.off(); lobbyPlayersRef = null; }
+  currentRoomId = null;
+  document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b.dataset.mode==='solo'));
+  state.players = [];
+  state.mancheIndex = 1;
+  showScreen('screen-categories');
+});
+
+/* ===== Auto-start via QR / URL, or join a live room ===== */
+window.addEventListener('DOMContentLoaded', ()=>{
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room');
+  const joinParam = params.get('join');
+  if(roomParam && joinParam === '1'){
+    if(!firebaseReady){
+      alert("Cette salle de jeu en ligne n'est pas encore configurée par l'organisateur (Firebase manquant).");
+      return;
+    }
+    showJoinScreen(roomParam);
+    return;
+  }
+  const cat = params.get('cat');
+  const lvl = params.get('lvl');
+  if(cat && lvl && (QUIZ_DATA[cat] || cat === 'mix') && LEVEL_LABELS[lvl]){
+    appMode = 'solo';
+    const name = cat === 'mix' ? 'Mix — Tout mélangé' : QUIZ_DATA[cat].name;
+    const color = cat === 'mix' ? 'var(--sun-gold)' : QUIZ_DATA[cat].color;
+    selectCategory(cat, name, color);
+    startQuiz(lvl);
+  }
+});
+</script>
+</body>
+</html>
